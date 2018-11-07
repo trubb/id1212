@@ -1,11 +1,8 @@
 package client;
 
-import java.io.BufferedReader;
+import client.view.View;
+
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class Client {
 
@@ -16,36 +13,10 @@ public class Client {
 
         Controller controller = new Controller();
         controller.connect( HOSTNAME, PORTNUMBER );
-/*
-        try (
-            Socket socket = new Socket( HOSTNAME, PORTNUMBER );
-            PrintWriter messageToServer = new PrintWriter( socket.getOutputStream(), true );
-            BufferedReader messageFromServer = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
-        ) {
-            BufferedReader stdIn = new BufferedReader( new InputStreamReader( System.in ) );
-            String fromServer;
-            String fromUser;
 
-            while ( ( fromServer = messageFromServer.readLine() ) != null ) {
+        View view = new View( controller );
+        view.start();
 
-                System.out.println("S: " + fromServer);
-                if ( fromServer.equals("BYE!") ) {
-                    break;
-                }
-
-                fromUser = stdIn.readLine();
-
-                if ( fromUser != null ) {
-                    messageToServer.println(fromUser);  // send our message to the server
-                }
-
-            }
-
-        } catch (UnknownHostException e) {
-            System.err.println("Unable to find host " + HOSTNAME + " " + PORTNUMBER);
-            System.exit(1);
-        }
-*/
     }
 
 }

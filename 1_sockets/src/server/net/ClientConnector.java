@@ -12,6 +12,7 @@ public class ClientConnector extends Thread {
 
     public ClientConnector ( Socket socket ) {
         super("ClientConnector");
+        // the socket we were passed -> the socket we have above
         this.socket = socket;
     }
 

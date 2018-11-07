@@ -11,9 +11,9 @@ public class Controller {
     public void connect ( String HOSTNAME, int PORTNUMBER ) throws IOException {
 
         try {
+            System.out.println("Controller: Connecting");
             connection = new ServerConnector();
             connection.connect( HOSTNAME, PORTNUMBER );
-            System.out.println("Controller: Connected to server");
         } catch (IOException e) {
             e.printStackTrace();
         }
