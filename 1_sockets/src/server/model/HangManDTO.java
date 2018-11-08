@@ -50,8 +50,16 @@ public class HangManDTO implements Serializable {
     }
 
     public void addCharToGuessed ( char c ) {
-        if ( !guessedChars.contains( c ) ) {
+        if ( !this.guessedChars.contains( c ) ) {
             this.guessedChars.add( c );
+        }
+    }
+
+    public boolean isInGuessed ( char c ) {
+        if ( this.guessedChars.contains( c ) ) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -67,6 +75,14 @@ public class HangManDTO implements Serializable {
 
     public char[] getWordArray() {
         return this.wordArray;
+    }
+
+    public String getWordArrayAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < this.wordArray.length; i++) {
+            sb.append( this.wordArray[i] );
+        }
+        return sb.toString();
     }
 
     public int getAllowedAttempts() {

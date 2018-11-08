@@ -6,7 +6,7 @@ import server.model.HangManGame;
 public class Controller {
 
     HangManGame game = new HangManGame();
-    HangManDTO dto = new HangManDTO();
+    public HangManDTO dto = new HangManDTO();
 
     public void init() {
         game.init( dto );
@@ -21,7 +21,5 @@ public class Controller {
             game.guessWholeWord( input );
         }
     }
-
-
 
 }

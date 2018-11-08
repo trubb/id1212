@@ -27,14 +27,10 @@ public class ClientConnector extends Thread {
             throw new UncheckedIOException(e);
         }
 
-        /**
-         * SEND THIS TO CONTROLLER?
-         * ALSO NEEDS TO HANDLE GUESSES THAT ARENT CHARS PROBABLY
-         * LOW PRIO
-         */
         try {
             String instring, outstring;
-            outstring = "Hello, you connected to the server";
+            outstring = "Hello, you connected to the server\n" +
+                    "Allowed commands are !PLAY and !QUIT";
             messageToClient.println( outstring );
 
             while ( ( instring = input.readLine() ) != null ) {
@@ -46,11 +42,12 @@ public class ClientConnector extends Thread {
                     messageToClient.println( outstring );
                     break;
                 } else if ( instring.equals("!PLAY") ) {
-                    outstring = "Initializing game..";
+                    outstring = "Game started, you may now guess individual letters or a whole word";
                     messageToClient.println( outstring );
                     controller.init();
                 } else {
                     controller.makeGuess( instring );
+                    messageToClient.println(  );    //send back some shit here
                 }
             }
 

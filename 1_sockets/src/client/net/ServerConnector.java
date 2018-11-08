@@ -27,7 +27,6 @@ public class ServerConnector {
 
     public void disconnect () throws IOException {
          try {
-             System.out.println("ServCon: Connection closing!");
              socket.close();
              socket = null;
          } catch ( IOException e ) {
@@ -45,11 +44,11 @@ public class ServerConnector {
         public void run() {
             try {
                 while (true) {
-                    System.out.println( "S: " + messageFromServer.readLine() );
+                    System.out.println("S: " + messageFromServer.readLine());
                 }
             } catch (Throwable connectionFail) {
-                if ( socket == null ){
-                    System.out.println("ServCon: Lost connection to server");
+                if ( socket == null ) {
+                    // do something
                 }
             }
         }

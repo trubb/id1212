@@ -16,7 +16,7 @@ public class HangManGame {
          *  print dto contents to show what they are
          */
         String s = new String( dto.getWordArray() );
-        System.out.printf( dto.getWord() + " " + dto.getAllowedAttempts() + " " + s  );
+        System.out.println( dto.getWord() + " " + dto.getAllowedAttempts() + " " + s  );
     }
 
     public String selectWord() {
@@ -52,10 +52,12 @@ public class HangManGame {
 
             for (int i = 0; i < dto.getWordArray().length; i++) {
                 if (temp[i] == c) {
-
+                    dto.updateWordArray( i, c );
+                } else {
+                    dto.subtractAttempt();
                 }
             }
-
+            System.out.println( dto.getWordArrayAsString() );
         }
     }
 
@@ -67,5 +69,6 @@ public class HangManGame {
             dto.subtractAttempt();
         }
     }
+
 
 }
