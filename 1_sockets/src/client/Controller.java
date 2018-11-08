@@ -11,7 +11,7 @@ public class Controller {
     public void connect ( String HOSTNAME, int PORTNUMBER ) throws IOException {
 
         try {
-            System.out.println("Controller: Connecting");
+            System.out.println(".. Connecting ..");
             connection = new ServerConnector();
             connection.connect( HOSTNAME, PORTNUMBER );
         } catch (IOException e) {
@@ -21,10 +21,10 @@ public class Controller {
 
     public void disconnect () throws IOException {
         try {
-            System.out.println("Controller: Connection closing!");
+            System.out.println("Connection closing!");
             connection.disconnect();
         } catch (IOException e) {
-            System.out.println("Controller: Could not disconnect!");
+            System.out.println("Could not disconnect!");
             System.exit(1);
         }
     }
@@ -33,7 +33,7 @@ public class Controller {
         try {
             connection.sendMessage( message );
         } catch (IOException e) {
-            System.out.println("Controller: Failed to send message!");
+            System.out.println("Failed to send message!");
         }
 
     }

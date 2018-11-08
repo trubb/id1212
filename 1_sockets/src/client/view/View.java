@@ -12,7 +12,6 @@ public class View implements Runnable {
     private Scanner stdIn = new Scanner(System.in);
 
     public View ( Controller controller ) {
-        // the controller we have in this class == the one we were passed
         this.controller = controller;
     }
 
