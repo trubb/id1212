@@ -9,11 +9,11 @@ public class Controller {
     private ServerConnector connection;
 
     public void connect ( String HOSTNAME, int PORTNUMBER ) throws IOException {
-
         try {
-            System.out.println(".. Connecting ..");
+            //System.out.println(".. Connecting ..");
             connection = new ServerConnector();
             connection.connect( HOSTNAME, PORTNUMBER );
+            System.out.println("Connected.\nAllowed commands are !PLAY and !QUIT");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -21,7 +21,7 @@ public class Controller {
 
     public void disconnect () throws IOException {
         try {
-            System.out.println("Connection closing!");
+            System.out.println("Disconnected.");
             connection.disconnect();
         } catch (IOException e) {
             System.out.println("Could not disconnect!");

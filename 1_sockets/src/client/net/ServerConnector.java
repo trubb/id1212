@@ -30,7 +30,7 @@ public class ServerConnector {
              socket.close();
              socket = null;
          } catch ( IOException e ) {
-             System.out.println("ServCon: Could not disconnect!");
+             System.err.println("ServCon: Could not disconnect!");
              System.exit(1);
          }
     }

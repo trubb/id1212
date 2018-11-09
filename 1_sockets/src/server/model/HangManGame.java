@@ -2,23 +2,52 @@ package server.model;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 public class HangManGame {
 
-    HangManDTO dto;
+    private String word;
+    private char[] wordArray;
+    private char[] guessArray;
+    private int allowedAttempts;
+    private Set<Character> guessedChars = new HashSet<>();
+    private Set<String> guessedWords = new HashSet<>();
+    private Set<Character> wordSet = new HashSet<>();
 
-    public void init ( HangManDTO indto ) {
-        this.dto = indto;
-        dto.setup( selectWord() );
+    public void init () {
+        clear();
+        word = selectWord();
+        wordArray = word.toCharArray();
+        allowedAttempts = word.length();
+        guessArray = new char[word.length()];
+        Arrays.fill( guessArray, '_');
+        for (int i = 0; i < word.length(); i++) {
+            wordSet.add( wordArray[i] );
+        }
 
-        /** REMOVEME
-         *  print dto contents to show what they are
+        /**
+         * while testing we print this stuff to the
+         * server terminal to see that it works
          */
-        String s = new String( dto.getWordArray() );
-        System.out.println( dto.getWord() + " " + dto.getAllowedAttempts() + " " + s  );
+        StringBuilder wA = new StringBuilder();
+        StringBuilder gA = new StringBuilder();
+        for (int i = 0; i < this.wordArray.length; i++) {
+            wA.append( this.wordArray[i] );
+            gA.append( this.guessArray[i] );
+        };
+        System.out.println(
+                "word: " + word + "\n" +
+                "attempts: " + allowedAttempts + "\n" +
+                "wordarray: " + wA.toString() + "\n" +
+                "guessarray: " + gA.toString()
+        );
     }
 
+    /**
+     * Selects a random word from the wordfile
+     * @return the chosen word as a string
+     */
     public String selectWord() {
         String word = "";
         Random random = new Random();
@@ -36,39 +65,100 @@ public class HangManGame {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return word;
+
+        if ( word.length() == 1){
+            word = selectWord();
+            return word;
+        } else {
+            return word;
+        }
     }
 
     /**
      * things for dealing with the rounds of the game
      */
 
-    public void makeGuess ( char c ) {
-
-        if ( dto.getAllowedAttempts() > 0 ) {
-
-            dto.addCharToGuessed( c );
-            char[] temp = dto.getWordArray();
-
-            for (int i = 0; i < dto.getWordArray().length; i++) {
-                if (temp[i] == c) {
-                    dto.updateWordArray( i, c );
-                } else {
-                    dto.subtractAttempt();
-                }
+    /**
+     * Helper method to make guesses
+     * @param input a string of arbitrary length
+     */
+    public void makeGuess ( String input ) {
+        if ( allowedAttempts > 0 ) {
+            if (input.length() == 1) {
+                char[] ca = input.toCharArray();
+                guessChar(ca[0]);
+            } else {
+                guessWholeWord(input);
             }
-            System.out.println( dto.getWordArrayAsString() );
         }
     }
 
-    public void guessWholeWord ( String input ) {
-
-        if ( dto.getAllowedAttempts() > 0 && input.equals( dto.getWord() ) ) {
-            dto.setGameWonState( true );
-        } else {
-            dto.subtractAttempt();
+    /**
+     * Make a guess based on a character
+     * @param c the character that is guessed
+     */
+    private void guessChar ( char c ) {
+        if ( !guessedChars.contains( c ) ) {
+            guessedChars.add( c );
+            if (wordSet.contains( c )) {
+                for (int i = 0; i < word.length(); i++) {
+                    if ( wordArray[i] == c ) {
+                        guessArray[i] = wordArray[i];
+                    }
+                }
+                System.out.println( c );
+            } else {
+                allowedAttempts--;
+            }
+            System.out.println( allowedAttempts );
         }
     }
 
+    /**
+     * Make a guess based on a string
+     * @param input the string that is guessed
+     */
+    private void guessWholeWord ( String input ) {
+        if ( !guessedWords.contains( input ) ) {
+            guessedWords.add( input );
+            if ( word.equals( input ) ) {
+                guessArray = word.toCharArray();
+                System.out.println("USER WON!");    // DO THE THING HERE
+            } else {
+                allowedAttempts--;
+            }
+            System.out.println( allowedAttempts );
+        }
+    }
+
+    /**
+     * Check if the client has guessed all letters of the word
+     * @return a boolean, true if the guess array is the same as the word
+     */
+    public boolean checkEquals() {
+        return Arrays.equals(wordArray, guessArray);
+    }
+
+    public int getAttempts(){
+        return allowedAttempts;
+    }
+
+    private void clear() {
+        word = "";
+        wordArray = new char[0];
+        guessArray = new char[0];
+        allowedAttempts = 0;
+        guessedChars.clear();
+        guessedWords.clear();
+        wordSet.clear();
+    }
+
+    public String printGuessArray () {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < guessArray.length; i++) {
+            sb.append( guessArray[i] );
+        }
+        return sb.toString();
+    }
 
 }

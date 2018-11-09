@@ -10,7 +10,7 @@ public class ClientConnector extends Thread {
     private Socket socket;
     private Controller controller = new Controller();
     private PrintWriter messageToClient;
-    private BufferedReader input;
+    private BufferedReader messageFromClient;
 
     public ClientConnector ( Socket socket ) {
         super("ClientConnector");
@@ -19,43 +19,44 @@ public class ClientConnector extends Thread {
 
     @Override
     public void run() {
-
         try {
             messageToClient = new PrintWriter( socket.getOutputStream(), true );
-            input = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
+            messageFromClient = new BufferedReader( new InputStreamReader( socket.getInputStream() ) );
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
 
-        try {
-            String instring, outstring;
-            outstring = "Hello, you connected to the server\n" +
-                    "Allowed commands are !PLAY and !QUIT";
-            messageToClient.println( outstring );
+        while (true) {
+            try {
+                String instring, outstring;
 
-            while ( ( instring = input.readLine() ) != null ) {
-                outstring = "You sent: " + instring;
-                messageToClient.println( outstring );
+                while ((instring = messageFromClient.readLine()) != null) {
 
-                if ( instring.equals("!QUIT") ) {
-                    outstring = "BYE!";
-                    messageToClient.println( outstring );
-                    break;
-                } else if ( instring.equals("!PLAY") ) {
-                    outstring = "Game started, you may now guess individual letters or a whole word";
-                    messageToClient.println( outstring );
-                    controller.init();
-                } else {
-                    controller.makeGuess( instring );
-                    messageToClient.println(  );    //send back some shit here
+                    if (instring.equals("!PLAY")) {
+                        outstring = "Game started, you may now guess individual letters or a whole word";
+                        messageToClient.println(outstring);
+                        controller.init();
+                        messageToClient.println( controller.printGuessArray() );
+                    } else {
+                        controller.makeGuess(instring);
+                        messageToClient.println( controller.getAttempts() + controller.printGuessArray() );
+                        controller.checkEquals();
+                    }
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
 
-            socket.close();
-            System.out.println("Client disconnected");
+            try {
+                if (socket != null) {
+                    socket.close();
+                    System.out.println("Client disconnected.");
+                    break;
+                }
+            } catch (IOException ioEx) {
+                System.out.println("Unable to disconnect!");
+            }
 
-        } catch (IOException e) {
-            e.printStackTrace();
         }
 
     }

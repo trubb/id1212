@@ -1,25 +1,31 @@
 package server.controller;
 
-import server.model.HangManDTO;
 import server.model.HangManGame;
+
+import java.io.PrintWriter;
 
 public class Controller {
 
     HangManGame game = new HangManGame();
-    public HangManDTO dto = new HangManDTO();
 
     public void init() {
-        game.init( dto );
+        game.init();
     }
 
     public void makeGuess ( String input ) {
+        game.makeGuess( input );
+    }
 
-        if ( input.length() == 1 ) {
-            char[] ca = input.toCharArray();
-            game.makeGuess(ca[0]);
-        } else {
-            game.guessWholeWord( input );
-        }
+    public String printGuessArray () {
+        return game.printGuessArray();
+    }
+
+    public int getAttempts() {
+        return game.getAttempts();
+    }
+
+    public boolean checkEquals() {
+        return game.checkEquals();
     }
 
 }
