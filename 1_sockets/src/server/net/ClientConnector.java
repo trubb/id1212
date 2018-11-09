@@ -28,19 +28,39 @@ public class ClientConnector extends Thread {
 
         while (true) {
             try {
-                String instring, outstring;
+                String userInput;
 
-                while ((instring = messageFromClient.readLine()) != null) {
+                while ( ( userInput = messageFromClient.readLine() ) != null ) {
 
-                    if (instring.equals("!PLAY")) {
-                        outstring = "Game started, you may now guess individual letters or a whole word";
-                        messageToClient.println(outstring);
-                        controller.init();
+                    if ( userInput.equals("!PLAY") ) {
+                        controller.newGame();
+                        messageToClient.println( controller.getAttempts() );
                         messageToClient.println( controller.printGuessArray() );
-                    } else {
-                        controller.makeGuess(instring);
-                        messageToClient.println( controller.getAttempts() + controller.printGuessArray() );
-                        controller.checkEquals();
+                        messageToClient.println( controller.getScore() );
+
+                        while ( !userInput.equals("!QUIT") ) {
+                            userInput = messageFromClient.readLine();
+                            controller.makeGuess( userInput );
+                            messageToClient.println( controller.getAttempts() );
+                            messageToClient.println( controller.printGuessArray() );
+                            messageToClient.println( controller.getScore() );
+
+                            if ( controller.checkEquals() ) {
+                                controller.win();
+                                messageToClient.println( controller.getAttempts() );
+                                messageToClient.println( controller.printGuessArray() );
+                                messageToClient.println( controller.getScore() );
+
+                            } else if ( controller.getAttempts() == 0) {
+                                messageToClient.println( controller.getWord() );
+                                controller.newGame();
+                                messageToClient.println( controller.getAttempts() );
+                                messageToClient.println( controller.printGuessArray() );
+                                messageToClient.println( controller.getScore() );
+
+                            }
+                        }
+
                     }
                 }
             } catch (IOException e) {

@@ -2,14 +2,16 @@ package server.controller;
 
 import server.model.HangManGame;
 
-import java.io.PrintWriter;
-
 public class Controller {
 
     HangManGame game = new HangManGame();
 
-    public void init() {
-        game.init();
+    // TODO add add parser for messages, just feed it message<To/From>Client
+    // TODO send data from server in a better way
+    // TODO fix stylistic things
+
+    public void newGame() {
+        game.newGame();
     }
 
     public void makeGuess ( String input ) {
@@ -24,8 +26,21 @@ public class Controller {
         return game.getAttempts();
     }
 
+    public String getWord() {
+        return game.getWord();
+    }
+
     public boolean checkEquals() {
         return game.checkEquals();
     }
+
+    public int getScore() {
+        return game.getScore();
+    }
+
+    public void win() {
+        game.winRound();
+    }
+
 
 }

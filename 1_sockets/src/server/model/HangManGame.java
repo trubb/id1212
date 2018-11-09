@@ -2,7 +2,6 @@ package server.model;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.*;
 
 public class HangManGame {
@@ -11,11 +10,12 @@ public class HangManGame {
     private char[] wordArray;
     private char[] guessArray;
     private int allowedAttempts;
+    private int score;
     private Set<Character> guessedChars = new HashSet<>();
     private Set<String> guessedWords = new HashSet<>();
     private Set<Character> wordSet = new HashSet<>();
 
-    public void init () {
+    public void newGame() {
         clear();
         word = selectWord();
         wordArray = word.toCharArray();
@@ -30,18 +30,7 @@ public class HangManGame {
          * while testing we print this stuff to the
          * server terminal to see that it works
          */
-        StringBuilder wA = new StringBuilder();
-        StringBuilder gA = new StringBuilder();
-        for (int i = 0; i < this.wordArray.length; i++) {
-            wA.append( this.wordArray[i] );
-            gA.append( this.guessArray[i] );
-        };
-        System.out.println(
-                "word: " + word + "\n" +
-                "attempts: " + allowedAttempts + "\n" +
-                "wordarray: " + wA.toString() + "\n" +
-                "guessarray: " + gA.toString()
-        );
+        System.out.println( "word: " + word );
     }
 
     /**
@@ -106,11 +95,10 @@ public class HangManGame {
                         guessArray[i] = wordArray[i];
                     }
                 }
-                System.out.println( c );
             } else {
                 allowedAttempts--;
             }
-            System.out.println( allowedAttempts );
+            System.out.println( allowedAttempts + " " + c );
         }
     }
 
@@ -123,11 +111,10 @@ public class HangManGame {
             guessedWords.add( input );
             if ( word.equals( input ) ) {
                 guessArray = word.toCharArray();
-                System.out.println("USER WON!");    // DO THE THING HERE
             } else {
                 allowedAttempts--;
             }
-            System.out.println( allowedAttempts );
+            System.out.println( allowedAttempts + " " + input );
         }
     }
 
@@ -139,8 +126,21 @@ public class HangManGame {
         return Arrays.equals(wordArray, guessArray);
     }
 
-    public int getAttempts(){
+    public int getAttempts() {
         return allowedAttempts;
+    }
+
+    public String getWord() {
+        return word;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void winRound() {
+        score++;
+        newGame();
     }
 
     private void clear() {

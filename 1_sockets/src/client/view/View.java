@@ -35,6 +35,7 @@ public class View implements Runnable {
                 String input = commandLine.getInput();
 
                 if ( input.equals("!QUIT") ) {
+                    controller.sendMessage( input );
                     receivingCommands = false;
                     controller.disconnect();
                     break;
