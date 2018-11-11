@@ -1,6 +1,7 @@
 package client;
 
-import client.view.View;
+import client.controller.ClientInput;
+import client.controller.Controller;
 
 import java.io.IOException;
 
@@ -20,8 +21,8 @@ public class Client {
         Controller controller = new Controller();
         controller.connect( HOSTNAME, PORTNUMBER );
 
-        View view = new View( controller );
-        view.start();
+        ClientInput clientInput = new ClientInput( controller );
+        clientInput.start();
 
     }
 

@@ -1,11 +1,12 @@
-package client.view;
-
-import client.Controller;
+package client.controller;
 
 import java.io.IOException;
 import java.util.Scanner;
 
-public class View implements Runnable {
+/**
+ * Handles user input and parses it to
+ */
+public class ClientInput implements Runnable {
 
     private Controller controller;
     private boolean receivingCommands = false;
@@ -15,12 +16,12 @@ public class View implements Runnable {
      * Sets the provided controller as the one to work with
      * @param controller the controller that is to be used
      */
-    public View ( Controller controller ) {
+    public ClientInput( Controller controller ) {
         this.controller = controller;
     }
 
     /**
-     * Starts this instance of the view
+     * Starts this instance of the controller
      */
     public void start () {
         if (receivingCommands) {
@@ -29,14 +30,6 @@ public class View implements Runnable {
         receivingCommands = true;
         new Thread(this).start();
     }
-
-    /**
-     * @return input to be passed to another function
-     */
-    private String nextLine() {
-        return stdIn.nextLine();
-    }
-
 
     /**
      * Take in information
@@ -52,17 +45,14 @@ public class View implements Runnable {
                     receivingCommands = false;
                     controller.disconnect();
                     break;
-                } else if ( input.equals("!PLAY") ) {
-                    controller.sendMessage( input );
                 } else {
                     controller.sendMessage( input );
                 }
 
             } catch ( IOException e ) {
-                System.err.println("Message input fail in view");
+                System.err.println("Message input fail in controller");
             }
         }
     }
-
 
 }
