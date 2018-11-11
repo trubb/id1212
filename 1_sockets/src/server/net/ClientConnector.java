@@ -5,18 +5,27 @@ import server.controller.Controller;
 import java.io.*;
 import java.net.Socket;
 
+/**
+ * CilentConnector handles the connection to a client
+ * and parses the messages sent from the client.
+ */
 public class ClientConnector extends Thread {
-
     private Socket socket;
     private Controller controller = new Controller();
     private PrintWriter messageToClient;
     private BufferedReader messageFromClient;
 
+    /**
+     * Creates an instance of the ClientConnector using the provided socket
+     * @param socket the client to which this instance shall connect
+     */
     public ClientConnector ( Socket socket ) {
-        super("ClientConnector");
         this.socket = socket;
     }
 
+    /**
+     * Run method that handles communication to and from the client
+     */
     @Override
     public void run() {
         try {
@@ -33,38 +42,24 @@ public class ClientConnector extends Thread {
                 while ( ( userInput = messageFromClient.readLine() ) != null ) {
 
                     if ( userInput.equals("!PLAY") ) {
-                        controller.newGame();
-                        messageToClient.println( controller.getAttempts() );
-                        messageToClient.println( controller.printGuessArray() );
-                        messageToClient.println( controller.getScore() );
+                        controller.startGame( messageToClient );
 
                         while ( !userInput.equals("!QUIT") ) {
                             userInput = messageFromClient.readLine();
-                            controller.makeGuess( userInput );
-                            messageToClient.println( controller.getAttempts() );
-                            messageToClient.println( controller.printGuessArray() );
-                            messageToClient.println( controller.getScore() );
+                            controller.makeGuess( userInput, messageToClient );
 
                             if ( controller.checkEquals() ) {
-                                controller.win();
-                                messageToClient.println( controller.getAttempts() );
-                                messageToClient.println( controller.printGuessArray() );
-                                messageToClient.println( controller.getScore() );
+                                controller.win( messageToClient );
 
                             } else if ( controller.getAttempts() == 0) {
-                                messageToClient.println( controller.getWord() );
-                                controller.newGame();
-                                messageToClient.println( controller.getAttempts() );
-                                messageToClient.println( controller.printGuessArray() );
-                                messageToClient.println( controller.getScore() );
-
+                                controller.lose( messageToClient );
                             }
                         }
 
                     }
                 }
             } catch (IOException e) {
-                e.printStackTrace();
+//                e.printStackTrace();
             }
 
             try {
