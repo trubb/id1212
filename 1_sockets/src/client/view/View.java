@@ -11,10 +11,17 @@ public class View implements Runnable {
     private boolean receivingCommands = false;
     private Scanner stdIn = new Scanner(System.in);
 
+    /**
+     * Sets the provided controller as the one to work with
+     * @param controller the controller that is to be used
+     */
     public View ( Controller controller ) {
         this.controller = controller;
     }
 
+    /**
+     * Starts this instance of the view
+     */
     public void start () {
         if (receivingCommands) {
             return;
@@ -23,16 +30,22 @@ public class View implements Runnable {
         new Thread(this).start();
     }
 
+    /**
+     * @return input to be passed to another function
+     */
     private String nextLine() {
         return stdIn.nextLine();
     }
 
+
+    /**
+     * Take in information
+     */
     @Override
     public void run() {
         while (true) {
             try {
-                CommandLine commandLine = new CommandLine( nextLine() );
-                String input = commandLine.getInput();
+                String input = stdIn.nextLine();
 
                 if ( input.equals("!QUIT") ) {
                     controller.sendMessage( input );
