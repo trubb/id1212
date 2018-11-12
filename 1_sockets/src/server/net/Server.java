@@ -7,6 +7,12 @@ public class Server {
 
     private static final int PORTNUMBER = 48921;
 
+    /**
+     * Server main method, run to start the server.
+     * A new ClientConnector is spawned for each client that connects
+     * @param args No arguments used
+     * @throws IOException Occurs if another service is using the port
+     */
     public static void main(String[] args) throws IOException {
 
         System.out.println("Server starting");
