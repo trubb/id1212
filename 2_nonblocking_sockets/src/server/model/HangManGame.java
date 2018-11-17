@@ -6,7 +6,7 @@ import java.util.*;
 
 /**
  * The hangman game implementation.
- * At the start of a round a new word is selected from the file words.txt.
+ * At the processConnections of a round a new word is selected from the file words.txt.
  * The client receives information about how long the chosen word is, what
  * letters they have guessed, and what their current score is.
  */

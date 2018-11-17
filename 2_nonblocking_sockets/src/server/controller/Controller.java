@@ -9,29 +9,39 @@ import java.nio.channels.SocketChannel;
 
 public class Controller {
 
-
     private final SocketChannel socketChannel;
     private final Socket socket;
     private final ByteBuffer buffer;
     HangManGame game = new HangManGame();
 
-
+    /**
+     * Set up the Controller so that we use the correct channels sockets and buffer
+     * @param socketChannel the ServerSocketChannel that was created by the Server
+     * @param socket the socket that was created by the ClientHandler
+     * @param buffer the buffer that was created by the ClientHandler
+     */
     public Controller ( SocketChannel socketChannel, Socket socket, ByteBuffer buffer ) {
         this.socketChannel = socketChannel;
         this.socket = socket;
         this.buffer = buffer;
     }
 
-    // should be in clienthandler???
+    // TODO - should be in clienthandler???
+    // TODO - should not be in this shitty "just works"-format either??? See previous solution
+
+    /**
+     * Start the game and parse the input from the client
+     * @param start input from the client TODO - rename this parameter
+     */
     public void run (String start) {
         System.out.println("provided: " + start);
 
-        if ( start.equals("!PLAY") ) {
+        if ( start.equals("play") ) {
             init();
             printline("New game started");
 
             String input = "";
-            while ( !input.equals("!QUIT") )  {
+            while ( !input.equals("quit") )  {
                 input = readMessage( buffer );
                 printline("Word is ");
                 printline("Remaining attempts ");
@@ -40,15 +50,12 @@ public class Controller {
                 game.makeGuess( input );
 
                 if (game.checkEquals()) {
-
+                    printline("Round won");
+                } else if ( game.getAttempts() == 0 ) {
+                    printline("You used upp all attempts");
+                    printline("The chosen word was " + game.getWord());
                 }
-
-
-
             }
-
-
-
         }
     }
 
@@ -72,6 +79,5 @@ public class Controller {
     public void init() {
         game.newGame();
     }
-
 
 }

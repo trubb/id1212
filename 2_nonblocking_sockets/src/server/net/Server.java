@@ -16,12 +16,11 @@ public class Server {
     public static void main(String[] args) {
         Server server = new Server();
         server.start();
-        System.out.println("Server starting");
     }
 
     public void start() {
         ServerSocket serverSocket;
-
+        System.out.println("Server started on port " + PORTNUMBER);
         try {
             // open the serversocketchannel and set it to not block
             serverSocketChannel = ServerSocketChannel.open();
@@ -30,7 +29,7 @@ public class Server {
             // set the serversocket to point to serversocketchannel's socket
             serverSocket = serverSocketChannel.socket();
 
-            // designate a new socket adress TODO - check if this works with localhost
+            // designate a new socket adress
             InetSocketAddress ipaddress = new InetSocketAddress(PORTNUMBER);
             serverSocket.bind(ipaddress);
 
@@ -44,9 +43,9 @@ public class Server {
             System.exit(1);
         }
 
-        // create and start a client handler based on the serversocketchannel above
+        // create and processConnections a client handler, pass it the serversocketchannel and selector
         ClientHandler clientHandler = new ClientHandler(serverSocketChannel, selector);
-        clientHandler.start();
+        clientHandler.processConnections();
 
     }
 
