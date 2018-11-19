@@ -2,7 +2,7 @@ package client.net;
 
 import shared.Message;
 import shared.MessageType;
-import shared.PrettyPrinter;
+import shared.MessagePrinter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -74,7 +74,7 @@ public class ServerConnection implements Runnable {
 
     private void connect (SelectionKey key) throws IOException {
         this.socketChannel.finishConnect();
-        viewListener.print( PrettyPrinter.buildStartGameMessage() );
+        viewListener.print( MessagePrinter.gameStartInfo() );
         key.interestOps(SelectionKey.OP_WRITE); // TODO - OP_CONNECT????
     }
 
@@ -109,13 +109,13 @@ public class ServerConnection implements Runnable {
 
             switch (message.getMessageType()) {
                 case START_RESPONSE:
-                    viewListener.print( PrettyPrinter.buildMakeGuessMessage( message.getMessage() ) );
+                    viewListener.print( MessagePrinter.startGuess( message.getMessage() ) );
                     break;
                 case GUESS_RESPONSE:
-                    viewListener.print( PrettyPrinter.buildGuessResponseMessage( message.getMessage() ) );
+                    viewListener.print( MessagePrinter.guessReply( message.getMessage() ) );
                     break;
                 case END_RESPONSE:
-                    viewListener.print( PrettyPrinter.buildEndResponseMessage( message.getMessage() ) );
+                    viewListener.print( MessagePrinter.endReply( message.getMessage() ) );
                     break;
                 default:
                     viewListener.print(message.getMessage());

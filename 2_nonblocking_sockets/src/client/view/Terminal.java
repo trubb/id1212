@@ -2,7 +2,7 @@ package client.view;
 
 import client.controller.Controller;
 import client.net.CommunicationListener;
-import shared.PrettyPrinter;
+import shared.MessagePrinter;
 
 import java.io.IOException;
 import java.util.Scanner;
@@ -36,8 +36,7 @@ public class Terminal implements Runnable {
 
     @Override
     public void run() {
-        outManager.println( PrettyPrinter.buildWelcomeMessage() );
-        outManager.println( PrettyPrinter.buildStartInfoMessage() );
+        outManager.println( MessagePrinter.startInfo() );
         outManager.print(PROMPT);
 
         while (running) {
@@ -62,7 +61,7 @@ public class Terminal implements Runnable {
                         break;
                 }
             } catch (IOException e) {
-                outManager.print( PrettyPrinter.buildCommandErrorMessage( e.getMessage() ) );
+                outManager.print( MessagePrinter.inputError( e.getMessage() ) );
                 outManager.print(PROMPT);
             }
         }
