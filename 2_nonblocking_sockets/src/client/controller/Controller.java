@@ -11,18 +11,11 @@ public class Controller {
     ServerConnection serverConnection = new ServerConnection();
 
     /**
-     * Connect to the server on demand
+     * Pass the listener to the serverconnection
+     * @param listener
      */
-    public void connect () {
-        serverConnection.connect();
-    }
-
-    /**
-     * Disconnect from the server
-     * @throws IOException
-     */
-    public void disconnect() throws IOException {
-        serverConnection.disconnect();
+    public void setViewListener (CommunicationListener listener) {
+        serverConnection.setCommsListener(listener);
     }
 
     /**
@@ -37,15 +30,22 @@ public class Controller {
      * @param guess the client's guess
      */
     public void submitGuess (String guess) {
-        serverConnection.submitGuess(guess);
+        serverConnection.addGuessToQueue(guess);
     }
 
     /**
-     * Pass the listener to the serverconnection
-     * @param listener
+     * Connect to the server on demand
      */
-    public void setViewListener (CommunicationListener listener) {
-        serverConnection.setViewListener(listener);
+    public void connect () {
+        serverConnection.connect();
+    }
+
+    /**
+     * Disconnect from the server
+     * @throws IOException
+     */
+    public void disconnect() throws IOException {
+        serverConnection.disconnect();
     }
 
 }

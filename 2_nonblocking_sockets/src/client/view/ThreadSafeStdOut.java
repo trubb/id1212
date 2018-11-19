@@ -3,7 +3,7 @@ package client.view;
 public class ThreadSafeStdOut {
 
     /**
-     * A synchronized way to print things
+     * A thread safe way to print things
      * @param output the input but synchronized
      */
     public synchronized void print ( String output ) {
@@ -11,7 +11,7 @@ public class ThreadSafeStdOut {
     }
 
     /**
-     * A synchronized way to print things on its own line
+     * A thread safe way to print things on its own line
      * @param output the input but synchronized and on a separate line
      */
     public synchronized void println ( String output ) {

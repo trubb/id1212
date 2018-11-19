@@ -2,7 +2,7 @@ package client.net;
 
 import shared.Message;
 import shared.MessageType;
-import shared.MessagePrinter;
+import shared.MessageFormatter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -13,17 +13,17 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import static shared.Message.deserialize;
-import static shared.Message.serialize;
+import static shared.Message.deserializeMessage;
+import static shared.Message.serializeMessage;
 
 public class ServerConnection implements Runnable {
 
     private final static String HOSTNAME = "127.0.0.1"; // It's easier to always use localhost in this case
     private static int PORTNUMBER = 48922;  // hopefully un(der)used port
     private final ByteBuffer serverMessage = ByteBuffer.allocate(8192); // 8192 seems like a reasonably large buffersize
-    private final LinkedBlockingQueue<Message> sendingQueue = new LinkedBlockingQueue<>();  // queue for sending
-    private final LinkedBlockingQueue<Message> readingQueue = new LinkedBlockingQueue<>();  // queue for receiving
-    private CommunicationListener viewListener;
+    private final LinkedBlockingQueue<Message> sendToServerQueue = new LinkedBlockingQueue<>();  // queue for sending
+    private final LinkedBlockingQueue<Message> readFromServerQueue = new LinkedBlockingQueue<>();  // queue for receiving
+    private CommunicationListener commsListener;
     private volatile boolean timeToSend = false;
     private boolean connected = false;
     private InetSocketAddress serverAddress;
@@ -39,35 +39,6 @@ public class ServerConnection implements Runnable {
     }
 
     /**
-     * Add a message to the sending queue
-     * @param type the message we want to send
-     * @param message what type of message it is that we want to send
-     */
-    private void addToSendQueue (MessageType type, String message ) {
-        Message messageToSend = new Message( type, message );   // create a new Message of specified type
-        synchronized (sendingQueue) {   // make sure that this can only be done one at a time
-            sendingQueue.add(messageToSend);    // add the message to the queue
-        }
-        this.timeToSend = true; // show that we want to send a message
-        selector.wakeup();  // wake up the selector
-    }
-
-    /**
-     * Starts a new game round by passing a empty message of type START
-     */
-    public void startNewRound() {
-        addToSendQueue( MessageType.START, "" );
-    }
-
-    /**
-     * Send a guess by passing the guess as a GUESS type message
-     * @param guess the string of length 1 - n we want to guess
-     */
-    public void submitGuess (String guess) {
-        addToSendQueue( MessageType.GUESS, guess);
-    }
-
-    /**
      * Disconnect from the server
      * @throws IOException
      */
@@ -79,11 +50,40 @@ public class ServerConnection implements Runnable {
     }
 
     /**
+     * Add a message to the sending queue
+     * @param type the message we want to send
+     * @param message what type of message it is that we want to send
+     */
+    private void addToSendQueue (MessageType type, String message ) {
+        Message messageToSend = new Message( type, message );   // create a new Message of specified type
+        synchronized (sendToServerQueue) {   // make sure that this can only be done one at a time
+            sendToServerQueue.add(messageToSend);    // add the message to the queue
+        }
+        this.timeToSend = true; // show that we want to send a message
+        selector.wakeup();  // wake up the selector
+    }
+
+    /**
+     * Send a guess by passing the guess as a GUESS type message
+     * @param guess the string of length 1 - n we want to guess
+     */
+    public void addGuessToQueue (String guess) {
+        addToSendQueue( MessageType.GUESS, guess);
+    }
+
+    /**
+     * Starts a new game round by passing a empty message of type START
+     */
+    public void startNewRound() {
+        addToSendQueue( MessageType.START, "" );
+    }
+
+    /**
      * Sets the communicationlistener of this instance
      * @param listener the communicationlistener we shall use
      */
-    public void setViewListener(CommunicationListener listener ) {
-        this.viewListener = listener;
+    public void setCommsListener (CommunicationListener listener ) {
+        this.commsListener = listener;
     }
 
     /**
@@ -106,8 +106,19 @@ public class ServerConnection implements Runnable {
      */
     private void connect (SelectionKey key) throws IOException {
         this.socketChannel.finishConnect();
-        viewListener.print( MessagePrinter.clientStartInfo() );
+        commsListener.print( MessageFormatter.clientStartInfo() );
         key.interestOps(SelectionKey.OP_WRITE);
+    }
+
+    /**
+     * Extract a message from the server out of the buffer
+     * @return the message
+     */
+    private String readFromServerBuffer() {
+        serverMessage.flip();  // flip the buffer to be able to read from it
+        byte[] bytes = new byte[ serverMessage.remaining() ];   // grab the bytes from the buffer
+        serverMessage.get(bytes);   // get the content
+        return new String(bytes);   // return it as a string
     }
 
     /**
@@ -116,27 +127,16 @@ public class ServerConnection implements Runnable {
      * @throws IOException
      */
     private void writeToServer (SelectionKey key) throws IOException {
-        synchronized (sendingQueue) {   // so that this can be done only one at a time
-            while (sendingQueue.size() > 0) {   // as long as there are items in the queue we keep sending
-                ByteBuffer message = ByteBuffer.wrap( serialize( sendingQueue.poll() ).getBytes() );
+        synchronized (sendToServerQueue) {   // so that this can be done only one at a time
+            while ( sendToServerQueue.size() > 0 ) {   // as long as there are items in the queue we keep sending
+                ByteBuffer message = ByteBuffer.wrap( serializeMessage( sendToServerQueue.poll() ).getBytes() );
                 socketChannel.write(message);   // write to the socketchannel from the buffer until there is nothing left
-                if (message.hasRemaining()) {
+                if ( message.hasRemaining() ) {
                     return;
                 }
             }
         }
-        key.interestOps(SelectionKey.OP_READ);
-    }
-
-    /**
-     * Extract a message from the server out of the buffer
-     * @return the message
-     */
-    private String extractMessageFromBuffer() {
-        serverMessage.flip();  // flip the buffer to be able to read from it
-        byte[] bytes = new byte[ serverMessage.remaining() ];   // grab the bytes from the buffer
-        serverMessage.get(bytes);   // get the content
-        return new String(bytes);   // return it as a string
+        key.interestOps(SelectionKey.OP_READ);  // set key to be ready for reading out of
     }
 
     /**
@@ -148,23 +148,23 @@ public class ServerConnection implements Runnable {
         serverMessage.clear();  // clear buffer so we know it's empty
         int numOfReadBytes = socketChannel.read(serverMessage); // check how many bytes have been read
         if (numOfReadBytes == -1) throw new IOException("closed connection");   // If -1 we've reached the end
-        readingQueue.add( deserialize( extractMessageFromBuffer() ) );  // att message to reading queue
+        readFromServerQueue.add( deserializeMessage( readFromServerBuffer() ) );  // att message to reading queue
 
-        while (readingQueue.size() > 0) {   // as long as there are items in the queue
-            Message message = readingQueue.poll();  // pull message from the queue
+        while (readFromServerQueue.size() > 0) {   // as long as there are items in the queue
+            Message message = readFromServerQueue.poll();  // pull message from the queue
 
             switch (message.getMessageType()) {
                 case START_RESPONSE:    // if the message is of type START_RESPONSE print a startGuess message
-                    viewListener.print( MessagePrinter.startGuess( message.getMessage() ) );
+                    commsListener.print( MessageFormatter.startGuess( message.getMessageText() ) );
                     break;
                 case GUESS_RESPONSE:    // if the message is of type GUESS_RESPONSE print a guessReply message
-                    viewListener.print( MessagePrinter.guessReply( message.getMessage() ) );
+                    commsListener.print( MessageFormatter.guessReply( message.getMessageText() ) );
                     break;
                 case END_RESPONSE:  // if the message is of type END_RESPONSE the round ended, print endReply
-                    viewListener.print( MessagePrinter.endReply( message.getMessage() ) );
+                    commsListener.print( MessageFormatter.endReply( message.getMessageText() ) );
                     break;
                 default:    // else print the retreived message's contents plainly
-                    viewListener.print(message.getMessage());
+                    commsListener.print( message.getMessageText() );
             }
         }
     }

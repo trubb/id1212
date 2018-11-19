@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 public class InputReader {
-    private ArrayList<String> arguments = new ArrayList<>();
-    private Commands commands;
+    private ArrayList<String> arguments = new ArrayList<>();    // for storing passed commands
+    private Commands commands;  // allowed and recognized commands
 
     /**
      * Take in a String input to determine what it is
@@ -13,6 +13,23 @@ public class InputReader {
      */
     public InputReader (String input) {
         determineCommand(input);
+    }
+
+    /**
+     * Get the argument at the specified index
+     * @param index the index we're interested in
+     * @return the argument
+     */
+    public String getArgument (int index) {
+        return arguments.get(index);
+    }
+
+    /**
+     * Returns the commmand
+     * @return the command
+     */
+    public Commands getCommands() {
+        return commands;
     }
 
     /**
@@ -39,23 +56,6 @@ public class InputReader {
                 this.commands = Commands.GUESS;
                 arguments.add(command); // if it is a guess we add the command to the arguments for later use
         }
-    }
-
-    /**
-     * Get the argument at the specified index
-     * @param index the index we're interested in
-     * @return the argument
-     */
-    public String getArgument (int index) {
-        return arguments.get(index);
-    }
-
-    /**
-     * Returns the commmand
-     * @return the command
-     */
-    public Commands getCommands() {
-        return commands;
     }
 
 }

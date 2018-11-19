@@ -10,96 +10,138 @@ import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Server {
-    private final LinkedBlockingQueue<SelectionKey> sendingQueue = new LinkedBlockingQueue<>();
-    private ServerSocketChannel serverChannel;
-    private Selector selector;
-    private int port = 48922;
 
+    private int PORTNUMBER = 48922;   // the PORTNUMBER we will be listening on
+    private ServerSocketChannel serverChannel;  // the ServerSocketChannel we will be using
+    private Selector selector;  // the selector we will be using
+    private final LinkedBlockingQueue<SelectionKey> sendToClient = new LinkedBlockingQueue<>(); // the queue for sending
+
+    /**
+     * Sets up the selector
+     * @throws IOException
+     */
     public Server() throws IOException {
-        this.selector = this.initSelector();
+        this.selector = this.initSelector();    // initialise the selector
     }
 
+    /**r
+     * Server main method, run to run server
+     * @param args not used
+     * @throws IOException
+     */
     public static void main(String[] args) throws IOException {
-        new Server().run();
+        new Server().run(); // start server
     }
 
+    /**
+     * Initialize the selector
+     * @return a selector that has been set up
+     * @throws IOException
+     */
     private Selector initSelector() throws IOException {
-        Selector socketSelector = SelectorProvider.provider().openSelector();
-
-        this.serverChannel = ServerSocketChannel.open();
-        this.serverChannel.configureBlocking(false);
-        this.serverChannel.socket().bind(new InetSocketAddress(this.port));
-        this.serverChannel.register(socketSelector, SelectionKey.OP_ACCEPT);
-
-        return socketSelector;
+        Selector socketSelector = SelectorProvider.provider().openSelector();   // opens a selector
+        this.serverChannel = ServerSocketChannel.open();    // opens the serversocketchannel
+        this.serverChannel.configureBlocking(false);    // set it to not block
+        this.serverChannel.socket().bind( new InetSocketAddress( this.PORTNUMBER ) ); // bind it to PORTNUMBER
+        this.serverChannel.register( socketSelector, SelectionKey.OP_ACCEPT );  // register with selector, yields a key
+        return socketSelector;  // return the selector
     }
 
+    /**
+     * Sets up and registers a clienthandler for a new connection
+     * @param key the key we want to use
+     * @throws IOException
+     */
+    private void startClientHandler (SelectionKey key) throws IOException {
+        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();  // set up a serversocketchannel from key
+        SocketChannel socketChannel = serverSocketChannel.accept(); // accepts the connection to this channels socket
+        socketChannel.configureBlocking(false); // set the channel to not block
+
+        ClientHandler handler = new ClientHandler(this, socketChannel); // start a new handler, pass server and the socketchannel
+        SelectionKey selectionKey = socketChannel.register(selector, SelectionKey.OP_READ, handler);    // register the channel for reading with selector, attach specific handler
+        handler.setKey(selectionKey);  // pass key to handler
+    }
+
+    /**
+     * Write message to a client via a clienthandler
+     * @param key the key we want to use
+     * @throws IOException
+     */
+    private void writeToClient (SelectionKey key) throws IOException {
+        ClientHandler clientHandler = (ClientHandler) key.attachment(); // grab the clienthander that is attached to the key
+        clientHandler.writeMessage();   // write message to the client
+        key.interestOps(SelectionKey.OP_READ);  // set key to be ready for reading out of
+    }
+
+    /**
+     * Read message from a clienthandler
+     * @param key the key we want to use
+     * @throws IOException
+     */
+    private void readFromClient (SelectionKey key) throws IOException {
+        ClientHandler clientHandler = (ClientHandler) key.attachment(); // grab the clienthandler that was attached
+        try {
+            clientHandler.readMessage();    // read the message from the clienthandler
+        } catch (IOException e) {   // if something goes awry we kick the client belonging to the key into orbit
+            disconnectClient(key);
+        }
+    }
+
+    /**
+     * Remove a client if necessary
+     * @param key the key we want to use
+     */
+    private void disconnectClient (SelectionKey key) {
+        ClientHandler clientHandler = (ClientHandler) key.attachment(); // grab the clienthandler that is attached to the key
+        clientHandler.disconnectClient();   // disconnect it
+        key.cancel();   // cancel the key
+    }
+
+    /**
+     * Add a message to the sending queue
+     * @param key the key we want to use
+     */
+    public void addToSendQueue(SelectionKey key) {
+        sendToClient.add(key);  // add a key to the queue
+    }
+
+    /**
+     * Wake the selector up to be able to do things after adding stuff to the queue
+     */
+    public void wakeupSelector() {
+        selector.wakeup();  // wake the selector up
+    }
+
+    /**
+     * Things we do continuously while running the program
+     */
     public void run() {
-        System.out.println("Server started, listening on port: " + port);
+        System.out.println("Server started, listening on PORTNUMBER: " + PORTNUMBER);   // just say that we started
         while (true) {
             try {
-                // First send enqueued messages
-                while (!sendingQueue.isEmpty()) {
-                    sendingQueue.poll().interestOps(SelectionKey.OP_WRITE);
+                while (!sendToClient.isEmpty()) {   // send any messages in the queue
+                    sendToClient.poll().interestOps( SelectionKey.OP_WRITE );
                 }
 
-                // Then check if there are selection keys available
-                this.selector.select();
-
-                for (SelectionKey key : this.selector.selectedKeys()) {
-
-                    if (!key.isValid()) continue;
-
-                    if (key.isAcceptable()) startHandler(key);
-                    else if (key.isReadable()) readFromClient(key);
-                    else if (key.isWritable()) writeToClient(key);
-
-                    selector.selectedKeys().remove(key);
+                this.selector.select(); // select available keys
+                for (SelectionKey key : this.selector.selectedKeys()) { // for every key that we managed to select
+                    if ( !key.isValid() ) { // if the key is invalid then we skip it
+                        continue;
+                    }
+                    if ( key.isAcceptable() ) { // if the key's channel is ready to accept a new connection
+                        startClientHandler(key);
+                    }
+                    else if ( key.isReadable() ) {  // if the key's channel is ready for reading
+                        readFromClient(key);
+                    }
+                    else if ( key.isWritable() ) {  // if the key's channel is ready for writing
+                        writeToClient(key);
+                    }
+                    selector.selectedKeys().remove(key);    // when done remove the key from the set
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-    }
-
-    private void startHandler(SelectionKey key) throws IOException {
-        ServerSocketChannel serverSocketChannel = (ServerSocketChannel) key.channel();
-
-        SocketChannel socketChannel = serverSocketChannel.accept();
-        socketChannel.configureBlocking(false);
-
-        ClientHandler handler = new ClientHandler(this, socketChannel);
-        SelectionKey selectionKey = socketChannel.register(selector, SelectionKey.OP_READ, handler);
-        handler.setSelectionKey(selectionKey);
-    }
-
-    private void readFromClient(SelectionKey key) throws IOException {
-        ClientHandler clientHandler = (ClientHandler) key.attachment();
-        try {
-            clientHandler.readMessage();
-        } catch (IOException e) {
-            removeClient(key);
-        }
-    }
-
-    private void writeToClient(SelectionKey key) throws IOException {
-        ClientHandler clientHandler = (ClientHandler) key.attachment();
-        clientHandler.writeMessage();
-        key.interestOps(SelectionKey.OP_READ);
-    }
-
-    private void removeClient(SelectionKey key) throws IOException {
-        ClientHandler clientHandler = (ClientHandler) key.attachment();
-        clientHandler.disconnectClient();
-        key.cancel();
-    }
-
-    public void addMessageToWritingQueue(SelectionKey selectionKey) {
-        sendingQueue.add(selectionKey);
-    }
-
-    // Wake up selector after putting messages from other classes in queue
-    public void wakeupSelector() {
-        selector.wakeup();
     }
 }

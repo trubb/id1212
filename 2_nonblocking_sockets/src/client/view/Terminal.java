@@ -2,17 +2,17 @@ package client.view;
 
 import client.controller.Controller;
 import client.net.CommunicationListener;
-import shared.MessagePrinter;
+import shared.MessageFormatter;
 
 import java.io.IOException;
 import java.util.Scanner;
 
 public class Terminal implements Runnable {
 
-    private static final String PROMPT = ">";   // our "hey user you can write here" character
     private final ThreadSafeStdOut outManager = new ThreadSafeStdOut(); // where we want to print things in a synchronized manner
     private final Scanner console = new Scanner(System.in); // user input source
     private ConsoleOutput consoleOutput = new ConsoleOutput();  // handler for putting things in the right place
+    private static final String PROMPT = ">";   // our "hey user you can write here" character
     private boolean running = false;
     private Controller controller;
 
@@ -66,7 +66,7 @@ public class Terminal implements Runnable {
                         break;
                 }
             } catch (IOException e) {   // if something stupid happens then print the error and a new prompt char
-                outManager.print( MessagePrinter.inputError( e.getMessage() ) );
+                outManager.print( MessageFormatter.inputError( e.getMessage() ) );
                 outManager.print(PROMPT);
             }
         }
