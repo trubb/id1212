@@ -15,11 +15,91 @@ public class HangManGame {
     private String word;
     private char[] wordArray;
     private char[] guessArray;
-    private int allowedAttempts;
+    private int remainingAttempts;
     private int score;
     private Set<Character> guessedChars = new HashSet<>();
     private Set<String> guessedWords = new HashSet<>();
     private Set<Character> wordSet = new HashSet<>();
+
+
+    private String chosenWord;
+    private String currentState;
+
+    public HangManGame() {
+        this.score = 0;
+    }
+
+    public String startRound() {
+        chosenWord = selectWord().toUpperCase();
+        remainingAttempts = chosenWord.length();
+        currentState = chosenWord.replaceAll("[a-zA-Z]", "_");  // replace all letters with _
+
+        return buildMessage();
+    }
+
+    private String buildMessage() {
+        return "You have to guess: " + "  -  [remaining attempts: " + remainingAttempts + "; score: " + score + "]";
+    }
+    // TODO - Possible fail place
+
+    public String validateGuess (String guess) {
+        guess.toUpperCase();
+        if (guess.length() == 1) {
+            validateLetter(guess);
+        } else {
+            validateWord(guess);
+        }
+        return buildMessage();
+    }
+
+    /**
+     * Consider doing this with just a char instead...
+     * @param letter
+     */
+    private void validateLetter (String letter) {
+        if ( !chosenWord.contains(letter) ) {
+            if (remainingAttempts <= 1) {
+                if (score > 0) score--;
+                currentState = chosenWord;
+                chosenWord = null;
+                return;
+            }
+            remainingAttempts--;
+            return;
+        }
+
+        char[] chosenCharArray = chosenWord.toCharArray();
+        char[] currentCharArray = currentState.toCharArray();
+        char letterChar = letter.charAt(0);
+
+        for (int i = 0; i < chosenCharArray.length; i++) {
+            if (chosenCharArray[i] == letterChar) {
+                currentCharArray[i] = letterChar;
+            }
+        }
+
+        currentState = String.valueOf(currentCharArray);
+    }
+
+    private void validateWord (String word) {
+        if ( word.equals(chosenWord) ) {
+            score++;
+            currentState = word;
+            chosenWord = null;
+            return;
+        }
+        if (remainingAttempts <= 1) {
+            if (score > 0) score--;
+            currentState = chosenWord;
+            chosenWord = null;
+            return;
+        }
+        remainingAttempts--;
+    }
+
+    public String getChosenWord() {
+        return chosenWord;
+    }
 
     /**
      * Start a new game round
@@ -28,7 +108,7 @@ public class HangManGame {
         clear();
         word = selectWord();
         wordArray = word.toCharArray();
-        allowedAttempts = word.length();
+        remainingAttempts = word.length();
         guessArray = new char[word.length()];
         Arrays.fill( guessArray, '_');
         for (int i = 0; i < word.length(); i++) {
@@ -36,7 +116,7 @@ public class HangManGame {
         }
 
         /**
-         * We print the chosen word to the server's terminal
+         * We print the chosen word to the server's Terminal
          * to see that it works (and for cheating purposes)
          */
         System.out.println( "word: " + word );
@@ -84,7 +164,7 @@ public class HangManGame {
         word = "";
         wordArray = new char[0];
         guessArray = new char[0];
-        allowedAttempts = 0;
+        remainingAttempts = 0;
         guessedChars.clear();
         guessedWords.clear();
         wordSet.clear();
@@ -96,7 +176,7 @@ public class HangManGame {
      * @param input a string of arbitrary length
      */
     public void makeGuess ( String input ) {
-        if ( allowedAttempts > 0 ) {
+        if ( remainingAttempts > 0 ) {
             if (input.length() == 1) {
                 char[] ca = input.toCharArray();
                 guessChar(ca[0]);
@@ -120,9 +200,9 @@ public class HangManGame {
                     }
                 }
             } else {
-                allowedAttempts--;
+                remainingAttempts--;
             }
-            System.out.println( allowedAttempts + " " + c );
+            System.out.println( remainingAttempts + " " + c );
         }
     }
 
@@ -136,9 +216,9 @@ public class HangManGame {
             if ( word.equals( input ) ) {
                 guessArray = word.toCharArray();
             } else {
-                allowedAttempts--;
+                remainingAttempts--;
             }
-            System.out.println( allowedAttempts + " " + input );
+            System.out.println( remainingAttempts + " " + input );
         }
     }
 
@@ -154,7 +234,8 @@ public class HangManGame {
      * @return the number of attempts left for the round
      */
     public int getAttempts() {
-        return allowedAttempts;
+        System.out.println(remainingAttempts);
+        return remainingAttempts;
     }
 
     /**
@@ -189,6 +270,7 @@ public class HangManGame {
         for (int i = 0; i < guessArray.length; i++) {
             sb.append( guessArray[i] );
         }
+        System.out.println(sb.toString());
         return sb.toString();
     }
 

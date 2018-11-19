@@ -1,10 +1,11 @@
 package client.net;
 
-import java.io.BufferedReader;
+import shared.Message;
+import shared.MessageType;
+import shared.PrettyPrinter;
+
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
@@ -12,134 +13,77 @@ import java.nio.channels.SocketChannel;
 import java.nio.channels.spi.SelectorProvider;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import static shared.Message.deserialize;
+import static shared.Message.serialize;
+
 public class ServerConnection implements Runnable {
 
-    private SocketChannel socketChannel;
-    private final LinkedBlockingQueue<String> sendingQueue = new LinkedBlockingQueue<>();
-    private final LinkedBlockingQueue<String> readingQueue = new LinkedBlockingQueue<>();
+    private final static String HOSTNAME = "127.0.0.1";
+    private static int PORTNUMBER = 8080;//48922;
+    private final ByteBuffer serverMessage = ByteBuffer.allocate(8192); // TODO - fault place
+    private final LinkedBlockingQueue<Message> sendingQueue = new LinkedBlockingQueue<>();
+    private final LinkedBlockingQueue<Message> readingQueue = new LinkedBlockingQueue<>();
+    private CommunicationListener viewListener;
+    private volatile boolean timeToSend = false;
+    private boolean connected = false;
     private InetSocketAddress serverAddress;
-    private boolean connected;
-    private Socket socket;
-    private PrintWriter messageToServer;
-    private BufferedReader messageFromServer;
+    private SocketChannel socketChannel;
     private Selector selector;
-    private CommunicationListener communicationListener;
-    private boolean timeToSend;
-    private final ByteBuffer serverMessage = ByteBuffer.allocateDirect(4096);
 
-    public void initSelector() throws Exception {
-        this.selector = SelectorProvider.provider().openSelector();
-        this.socketChannel = SocketChannel.open();
-        this.socketChannel.configureBlocking(false);
-        this.socketChannel.connect(serverAddress);
-        this.socketChannel.register( selector, SelectionKey.OP_CONNECT);
-        this.connected = true;
-    }
-
-    public void connect ( String HOSTNAME, int PORTNUMBER ) throws IOException {
+    public void connect () {
         this.serverAddress = new InetSocketAddress( HOSTNAME, PORTNUMBER );
         new Thread(this).start();
     }
 
-    public void disconnect() throws IOException {
-        try {
-            this.connected = false;
-            sendMessage("Closing connection");
-            this.socketChannel.close();
-            this.socketChannel.keyFor(selector).cancel();
-
-            System.out.println("Closing connection");
-        } catch (IOException e) {
-            System.err.println("Couldnt disconnect");
-            System.exit(1);
-        }
-    }
-
-    public void sendMessage ( String message ) throws IOException {
+    private void addToSendQueue (MessageType type, String message ) {
+        Message messageToSend = new Message( type, message );
         synchronized (sendingQueue) {
-            sendingQueue.add( message );
+            sendingQueue.add(messageToSend);
         }
-
         this.timeToSend = true;
         selector.wakeup();
     }
 
-    public void setCommunicationListener ( CommunicationListener communicationListener ) {
-        this.communicationListener = communicationListener;
+    public void startNewRound() {
+        addToSendQueue( MessageType.START, "" );
     }
 
-    @Override
-    public void run() {
-        try {
-            initSelector();
-            while (connected) {
-                if (timeToSend) {
-                    socketChannel.keyFor(selector).interestOps(SelectionKey.OP_WRITE);
-                    timeToSend = false;
-                }
-
-                /*
-                while (true) {
-                    this.selector.select();
-                    Iterator<SelectionKey> iterator = selector.selectedKeys().iterator();
-                    while (iterator.hasNext()) {
-                        SelectionKey key = iterator.next();
-                        iterator.remove();
-
-                        if (key.isAcceptable()) {
-                            acceptConnection(key);
-                        } else if (key.isReadable()) {
-                            acceptData(key);
-                        }
-                    }
-                }
-                */
-
-                this.selector.select();
-
-                for ( SelectionKey key : this.selector.selectedKeys() ) {
-                    if ( !key.isValid() ) {
-                        continue;
-                    }
-                    if ( key.isConnectable() ) {
-                        establishConnection(key);
-                    } else if ( key.isReadable() ) {
-                        readFromServer(key);
-                    } else if ( key.isWritable() ) {
-                        writeToServer(key);
-                    }
-
-                    selector.selectedKeys().remove(key);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void submitGuess (String guess) {
+        addToSendQueue( MessageType.GUESS, guess);
     }
 
-    private void establishConnection ( SelectionKey key ) throws Exception {
+    public void disconnect() throws IOException {
+        this.connected = false;
+        addToSendQueue(MessageType.QUIT, "");
+        this.socketChannel.close();
+        this.socketChannel.keyFor(selector).cancel();
+    }
+
+    public void setViewListener(CommunicationListener listener ) {
+        this.viewListener = listener;
+    }
+
+    private void initSelector() throws IOException {
+        this.selector = SelectorProvider.provider().openSelector();
+        this.socketChannel = SocketChannel.open();
+        this.socketChannel.configureBlocking(false);
+        this.socketChannel.connect(serverAddress);
+        this.socketChannel.register( selector, SelectionKey.OP_CONNECT );
+        this.connected = true;
+    }
+
+    private void connect (SelectionKey key) throws IOException {
         this.socketChannel.finishConnect();
-        communicationListener.print("Are you ready?");
-        key.interestOps( SelectionKey.OP_WRITE );
+        viewListener.print( PrettyPrinter.buildStartGameMessage() );
+        key.interestOps(SelectionKey.OP_WRITE); // TODO - OP_CONNECT????
     }
 
-    private void readFromServer ( SelectionKey key ) throws Exception {
-        serverMessage.clear();
-        int numberOfReadBytes = socketChannel.read( serverMessage );
-        readingQueue.add( extractMessageFromBuffer() );
-
-        while ( readingQueue.size() > 0 ) {
-            String message = readingQueue.poll();
-            communicationListener.print( message );
-        }
-    }
-
-    private void writeToServer ( SelectionKey key ) throws Exception {
+    private void writeToServer (SelectionKey key) throws IOException {
         synchronized (sendingQueue) {
-            while ( sendingQueue.size() > 0 ) {
-                ByteBuffer message = ByteBuffer.wrap( sendingQueue.poll().getBytes() );
-                socketChannel.write( message );
-                if ( message.hasRemaining() ) {
+            while (sendingQueue.size() > 0) {
+                ByteBuffer message = ByteBuffer.wrap( serialize( sendingQueue.poll() ).getBytes() );
+                socketChannel.write(message);
+                if (message.hasRemaining()) {
                     return;
                 }
             }
@@ -150,8 +94,64 @@ public class ServerConnection implements Runnable {
     private String extractMessageFromBuffer() {
         serverMessage.flip();
         byte[] bytes = new byte[ serverMessage.remaining() ];
-        serverMessage.get( bytes );
-        return new String( bytes );
+        serverMessage.get(bytes);
+        return new String(bytes);
+    }
+
+    private void readFromServer (SelectionKey key) throws IOException {
+        serverMessage.clear();  // clear buffer so we know it's empty
+        int numOfReadBytes = socketChannel.read(serverMessage);
+        if (numOfReadBytes == -1) throw new IOException("Client closed connection");
+        readingQueue.add( deserialize( extractMessageFromBuffer() ) );
+
+        while (readingQueue.size() > 0) {
+            Message message = readingQueue.poll();
+
+            switch (message.getMessageType()) {
+                case START_RESPONSE:
+                    viewListener.print( PrettyPrinter.buildMakeGuessMessage( message.getMessage() ) );
+                    break;
+                case GUESS_RESPONSE:
+                    viewListener.print( PrettyPrinter.buildGuessResponseMessage( message.getMessage() ) );
+                    break;
+                case END_RESPONSE:
+                    viewListener.print( PrettyPrinter.buildEndResponseMessage( message.getMessage() ) );
+                    break;
+                default:
+                    viewListener.print(message.getMessage());
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        try {
+            initSelector();
+
+            while (connected) {
+                if (timeToSend) {
+                    socketChannel.keyFor(selector).interestOps(SelectionKey.OP_WRITE);
+                    timeToSend = false;
+                }
+
+                this.selector.select();
+                for (SelectionKey key : this.selector.selectedKeys()) {
+                    if ( !key.isValid() ) {
+                        continue;
+                    }
+                    if (key.isConnectable()) {
+                        connect(key);
+                    } else if (key.isReadable()) {
+                        readFromServer(key);
+                    } else if (key.isWritable()) {
+                        writeToServer(key);
+                    }
+                    selector.selectedKeys().remove(key);
+                }
+            }
+        } catch (Exception e) {
+
+        }
     }
 
 }

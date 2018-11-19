@@ -4,39 +4,29 @@ import client.net.CommunicationListener;
 import client.net.ServerConnection;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 
 public class Controller {
+
     ServerConnection serverConnection = new ServerConnection();
 
-    public void connect ( String HOSTNAME, int PORTNUMBER ) {
-        try {
-            serverConnection.connect( HOSTNAME, PORTNUMBER );
-            System.out.println("Connected.\nAllowed commands are PLAY and QUIT\n");
-        } catch (IOException e) {
-            System.err.println("OOPS");
-        }
+    public void connect () {
+        serverConnection.connect();
     }
 
-    public void disconnect() {
-        try {
-            System.out.println("closing");
-            serverConnection.disconnect();
-        } catch (IOException e) {
-            System.err.println("couldnt disconnect");
-            System.exit(1);
-        }
+    public void startNewRound() {
+        serverConnection.startNewRound();
     }
 
-    public void sendMessage ( String message ) {
-        try {
-            serverConnection.sendMessage( message );
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    public void submitGuess (String guess) {
+        serverConnection.submitGuess(guess);
     }
 
-    public void setCommunicationListener ( CommunicationListener communicationListener ) {
-        serverConnection.setCommunicationListener(communicationListener);
+    public void disconnect() throws IOException {
+        serverConnection.disconnect();
     }
+
+    public void setViewListener (CommunicationListener listener) {
+        serverConnection.setViewListener(listener);
+    }
+
 }
