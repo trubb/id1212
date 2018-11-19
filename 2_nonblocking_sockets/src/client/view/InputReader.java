@@ -2,29 +2,33 @@ package client.view;
 
 import java.util.ArrayList;
 import java.util.StringTokenizer;
-import java.util.regex.Pattern;
 
 public class InputReader {
     private ArrayList<String> arguments = new ArrayList<>();
     private Commands commands;
 
-    public InputReader (String rawInput) {
-        determineCommand(rawInput);
+    /**
+     * Take in a String input to determine what it is
+     * @param input the string we want to check
+     */
+    public InputReader (String input) {
+        determineCommand(input);
     }
 
-    private void determineCommand (String rawInput) {
-        StringTokenizer stringTokenizer = new StringTokenizer(rawInput);
+    /**
+     * Determine what sort of command the input is
+     * @param input the string we want to check
+     */
+    private void determineCommand (String input) {
+        StringTokenizer stringTokenizer = new StringTokenizer(input);   // tokenize the string
 
-        if (stringTokenizer.countTokens() == 0) {
-            this.commands = Commands.NO_COMMAND;
-            return;
+        if (stringTokenizer.countTokens() == 0) {   // if there are no tokens in the provided string (empty)
+            this.commands = Commands.NO_COMMAND;    // then it wasnt a command
+            return; // so we exit
         }
 
-        String command = stringTokenizer.nextToken().toUpperCase();
+        String command = stringTokenizer.nextToken().toUpperCase(); // grab the token and check what command it is
         switch (command) {
-            case "CONNECT":
-              this.commands = Commands.CONNECT;
-                break;
             case "QUIT":
                 this.commands = Commands.QUIT;
                 break;
@@ -33,15 +37,23 @@ public class InputReader {
                 break;
             default:
                 this.commands = Commands.GUESS;
-                arguments.add(command);
+                arguments.add(command); // if it is a guess we add the command to the arguments for later use
         }
     }
 
-
+    /**
+     * Get the argument at the specified index
+     * @param index the index we're interested in
+     * @return the argument
+     */
     public String getArgument (int index) {
         return arguments.get(index);
     }
 
+    /**
+     * Returns the commmand
+     * @return the command
+     */
     public Commands getCommands() {
         return commands;
     }

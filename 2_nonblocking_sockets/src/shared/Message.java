@@ -19,7 +19,7 @@ public class Message {
         MessageType type = MessageType.valueOf( messageParts[0].toUpperCase() );
         //String body = messageParts.length > 1 ? messageParts[1] : "";
         String body;
-        if (messageParts.length > 1) {      // TODO POSSIBLE TROUBLE AREA
+        if (messageParts.length > 1) {
             body = messageParts[1];
         } else {
             body = "";

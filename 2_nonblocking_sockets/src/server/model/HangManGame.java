@@ -12,128 +12,127 @@ import java.util.*;
  */
 public class HangManGame {
 
-    private String word;
-    private char[] wordArray;
-    private char[] guessArray;
-    private int remainingAttempts;
-    private int score;
-    private Set<Character> guessedChars = new HashSet<>();
-    private Set<String> guessedWords = new HashSet<>();
-    private Set<Character> wordSet = new HashSet<>();
+    private int remainingAttempts;  // how many attempts the user has (left)
+    private int score;  // the user's score
+    private String word;    // the word that has been selected for a given round
+    private String obfuscatedWord;  // the word but overwritten with '_', filled with correctly guessed characters
 
-
-    private String chosenWord;
-    private String currentState;
-
+    /**
+     * Initialize score to 0 when game is created
+     */
     public HangManGame() {
         this.score = 0;
     }
 
+    /**
+     * Start a new round
+     * Selects a word and sets up <code>remainingAttempts</code> and
+     * <code>obfuscatedWord</code> to reflect the selected word.
+     * @return a String containing information about the current game state
+     */
     public String startRound() {
-        chosenWord = selectWord().toUpperCase();
-        remainingAttempts = chosenWord.length();
-        currentState = chosenWord.replaceAll("[a-zA-Z]", "_");  // replace all letters with _
+        word = selectWord().toUpperCase();  // pick a word, set it to be all uppercase
+        remainingAttempts = word.length();  // the user gets as many attempts as there are letters in word
+        obfuscatedWord = word.replaceAll("[a-zA-Z]", "_");  // replace all letters with _
 
-        return buildMessage();
+        System.out.println(word); // for cheating purposes
+        return roundMessage();  // return current game state
     }
 
-    private String buildMessage() {
-        return "You have to guess: " + "  -  [remaining attempts: " + remainingAttempts + "; score: " + score + "]";
+    /**
+     * Helper for constructing a message containing the current game state
+     * @return the state of the obfuscated word, attempts left, and score
+     */
+    private String roundMessage() {
+        return "Word: " + obfuscatedWord +
+                "\nRemaining attempts: " + remainingAttempts +
+                "\nScore: " + score;
     }
-    // TODO - Possible fail place
 
-    public String validateGuess (String guess) {
+    /**
+     * Parser for guess type
+     * @param guess a String of length 1 - n
+     * @return current game state
+     */
+    public String guessParser (String guess) {
         guess.toUpperCase();
         if (guess.length() == 1) {
-            validateLetter(guess);
+            guessLetter(guess);
         } else {
-            validateWord(guess);
+            guessWord(guess);
         }
-        return buildMessage();
+        return roundMessage();
     }
 
     /**
-     * Consider doing this with just a char instead...
-     * @param letter
+     * Make a guess based on a provided letter
+     * @param letter the letter to be checked against the selected word
      */
-    private void validateLetter (String letter) {
-        if ( !chosenWord.contains(letter) ) {
-            if (remainingAttempts <= 1) {
-                if (score > 0) score--;
-                currentState = chosenWord;
-                chosenWord = null;
+    private void guessLetter (String letter) {
+        if ( !word.contains(letter) ) { // if the word does not contain the provided letter
+            if (remainingAttempts <= 1) {   // if remaining attempts are 1 or below right now (ie will be 0 now)
+                obfuscatedWord = word;  // deobfuscate the word
+                word = null;    // reset the chosen word
                 return;
             }
-            remainingAttempts--;
-            return;
+            remainingAttempts--;    // decrement remaining attempts, bad guess
+            return; // exit
         }
 
-        char[] chosenCharArray = chosenWord.toCharArray();
-        char[] currentCharArray = currentState.toCharArray();
+        // setup char arrays
+        char[] wordCA = word.toCharArray();
+        char[] obfuscatedCA = obfuscatedWord.toCharArray();
         char letterChar = letter.charAt(0);
 
-        for (int i = 0; i < chosenCharArray.length; i++) {
-            if (chosenCharArray[i] == letterChar) {
-                currentCharArray[i] = letterChar;
+        // each letter in the word matching the provided letter is deobfuscated
+        for (int i = 0; i < wordCA.length; i++) {
+            if (wordCA[i] == letterChar) {
+                obfuscatedCA[i] = letterChar;
             }
         }
-
-        currentState = String.valueOf(currentCharArray);
-    }
-
-    private void validateWord (String word) {
-        if ( word.equals(chosenWord) ) {
-            score++;
-            currentState = word;
-            chosenWord = null;
-            return;
-        }
-        if (remainingAttempts <= 1) {
-            if (score > 0) score--;
-            currentState = chosenWord;
-            chosenWord = null;
-            return;
-        }
-        remainingAttempts--;
-    }
-
-    public String getChosenWord() {
-        return chosenWord;
+        // set the obfuscated word to be its partially deobfuscated twin
+        obfuscatedWord = String.valueOf(obfuscatedCA);
     }
 
     /**
-     * Start a new game round
+     * Make a guess based on a provided word
+     * @param word the word to be checked against the selected word
      */
-    public void newGame() {
-        clear();
-        word = selectWord();
-        wordArray = word.toCharArray();
-        remainingAttempts = word.length();
-        guessArray = new char[word.length()];
-        Arrays.fill( guessArray, '_');
-        for (int i = 0; i < word.length(); i++) {
-            wordSet.add( wordArray[i] );
+    private void guessWord (String word) {
+        if ( word.equals(this.word) ) { // if the word is correctly guessed, increment score and reset
+            score++;
+            obfuscatedWord = word;
+            this.word = null;
+            return;
         }
+        if (remainingAttempts <= 1) {   // if incorrectly guessed and no guesses left: reveal the word and reset
+            obfuscatedWord = this.word;
+            this.word = null;
+            return;
+        }
+        remainingAttempts--;    // if incorrectly guessed decrement attempts
+    }
 
-        /**
-         * We print the chosen word to the server's Terminal
-         * to see that it works (and for cheating purposes)
-         */
-        System.out.println( "word: " + word );
+    /**
+     * Helper for checking input against the selected word
+     * @return the selected word
+     */
+    public String getWord() {
+        return word;
     }
 
     /**
      * Selects a random word from words.txt
      * @return the chosen word as a string
      */
-    public String selectWord() {
+    private String selectWord() {
         String word = "";
         Random random = new Random();
         List<String> words = new ArrayList<>();
         try {
             Scanner wordFile = new Scanner( new File( "src/words.txt" ) );
             while ( wordFile.hasNextLine() ) {
-                words.add( wordFile.nextLine().toLowerCase() );
+                words.add( wordFile.nextLine().toUpperCase() );
             }
             wordFile.close();
 
@@ -144,7 +143,7 @@ public class HangManGame {
             e.printStackTrace();
         }
 
-        /**
+        /*
          * As 1-letter words are a 1/26 chance of getting right
          * we discard these by redoing the process if we get one
          */
@@ -154,135 +153,6 @@ public class HangManGame {
         } else {
             return word;
         }
-    }
-
-    /**
-     * Quick and dirty clearing of values between rounds
-     * to make sure that there are no lingering values
-     */
-    private void clear() {
-        word = "";
-        wordArray = new char[0];
-        guessArray = new char[0];
-        remainingAttempts = 0;
-        guessedChars.clear();
-        guessedWords.clear();
-        wordSet.clear();
-    }
-
-    /**
-     * Helper method to allow the client to make
-     * guesses of possibly arbitrary length
-     * @param input a string of arbitrary length
-     */
-    public void makeGuess ( String input ) {
-        if ( remainingAttempts > 0 ) {
-            if (input.length() == 1) {
-                char[] ca = input.toCharArray();
-                guessChar(ca[0]);
-            } else {
-                guessWholeWord(input);
-            }
-        }
-    }
-
-    /**
-     * Guess a character
-     * @param c the character that is guessed
-     */
-    private void guessChar ( char c ) {
-        if ( !guessedChars.contains( c ) ) {
-            guessedChars.add( c );
-            if (wordSet.contains( c )) {
-                for (int i = 0; i < word.length(); i++) {
-                    if ( wordArray[i] == c ) {
-                        guessArray[i] = wordArray[i];
-                    }
-                }
-            } else {
-                remainingAttempts--;
-            }
-            System.out.println( remainingAttempts + " " + c );
-        }
-    }
-
-    /**
-     * Guess a word
-     * @param input the string that is guessed
-     */
-    private void guessWholeWord ( String input ) {
-        if ( !guessedWords.contains( input ) ) {
-            guessedWords.add( input );
-            if ( word.equals( input ) ) {
-                guessArray = word.toCharArray();
-            } else {
-                remainingAttempts--;
-            }
-            System.out.println( remainingAttempts + " " + input );
-        }
-    }
-
-    /**
-     * Check if the client has guessed all letters of the word
-     * @return a boolean, true if the guess array is the same as the word
-     */
-    public boolean checkEquals() {
-        return Arrays.equals(wordArray, guessArray);
-    }
-
-    /**
-     * @return the number of attempts left for the round
-     */
-    public int getAttempts() {
-        System.out.println(remainingAttempts);
-        return remainingAttempts;
-    }
-
-    /**
-     * @return the word that has been selected for the round
-     */
-    public String getWord() {
-        return word;
-    }
-
-    /**
-     * @return the current score, persistent between rounds
-     */
-    public int getScore() {
-        return score;
-    }
-
-    /**
-     * Helper function for starting a new round
-     */
-    public void winRound() {
-        score++;
-        newGame();
-    }
-
-    /**
-     * Print the array of obfuscated letters to the client
-     * Letters are deobfuscated as they are correctly guessed
-     * @return the char array as a string
-     */
-    public String printGuessArray () {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < guessArray.length; i++) {
-            sb.append( guessArray[i] );
-        }
-        System.out.println(sb.toString());
-        return sb.toString();
-    }
-
-    /**
-     * Helper function for printing the set of guessed chars
-     * The set is used to keep track of what characters have
-     * been guessed already, and as we make sure that no char
-     * can be guessed twice it is nice to send this back to
-     * @return the set of guessed letters as a string
-     */
-    public String getGuessedChars() {
-        return guessedChars.toString();
     }
 
 }

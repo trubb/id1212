@@ -13,16 +13,14 @@ public class Server {
     private final LinkedBlockingQueue<SelectionKey> sendingQueue = new LinkedBlockingQueue<>();
     private ServerSocketChannel serverChannel;
     private Selector selector;
-    private int port;
+    private int port = 48922;
 
-    public Server(int port) throws IOException {
-        this.port = port;
+    public Server() throws IOException {
         this.selector = this.initSelector();
     }
 
     public static void main(String[] args) throws IOException {
-        int portNum = 8080;
-        new Server(portNum).run();
+        new Server().run();
     }
 
     private Selector initSelector() throws IOException {
