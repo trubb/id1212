@@ -72,11 +72,11 @@ public class ClientHandler implements Runnable {
      */
     void readMessage() throws IOException {
         clientMessage.clear();  // clear the buffer
-        int numOfReadBytes = clientChannel.read(clientMessage); // check how many bytes have been read
+        int numOfReadBytes = clientChannel.read(clientMessage); // read from channel into buffer, also retrieving how many bytes were read
         if (numOfReadBytes == -1) throw new IOException("Client has closed connection.");   // if -1 we've reached the end
 
         readQueue.add( deserializeMessage( readFromClientBuffer() ) );  // pick apart the message and add it to the reading queue
-        ForkJoinPool.commonPool().execute(this);    // spawn a separate thread to deal with this
+        ForkJoinPool.commonPool().execute(this);    // add this instance's run to the commonpool and run it
     }
 
     /**
