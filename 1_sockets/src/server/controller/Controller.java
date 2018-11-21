@@ -61,6 +61,7 @@ public class Controller {
      * @param messageToClient PrintWriter endpoint for sending messages to the client
      * @return Attempts left, the blanked out word, current score, and characters that the user have guessed
      */
+    /* TODO - move messaging to ClientConnector, pass connector as arg to controller when creating it to alleviate */
     private String messages ( PrintWriter messageToClient ) {
         messageToClient.println( game.getAttempts() );
         messageToClient.println( game.printGuessArray() );
