@@ -4,88 +4,176 @@
 \usepackage{graphicx}
 \usepackage{lastpage}
 \usepackage{pgf}
+\usepackage{hyperref}
 \usepackage{wrapfig}
 \usepackage{fancyvrb}
 \usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{lmodern}  % for bold teletype font
+\usepackage{amsmath}  % for \hookrightarrow
+\usepackage{xcolor}
 \pagestyle{fancy}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{myblue}{rgb}{0,0,0.6}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ 
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+%  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Java,                 % the language of the code
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
 
 % Create header and footer
 \headheight 27pt
 \pagestyle{fancyplain}
 \lhead{\footnotesize{Network Programming, ID1212}}
-\chead{\footnotesize{Name of the Report}}
-\rhead{}
+\chead{}
+\rhead{\footnotesize{Homework 2 - Nonblocking Sockets}}
 \lfoot{}
 \cfoot{\thepage\ (\pageref{LastPage})}
 \rfoot{}
 
 % Create title page
-\title{Name of the Report}
+\title{Homework 2 - Nonblocking Sockets}
 \subtitle{Network Programming, ID1212}
-\author{Your Name and Email Address}
-\date{Date}
+\author{Erik Pettersson - erpette@kth.se}
+\date{2018-11-20}
 
 \begin{document}
 
 \maketitle
 
-\section*{Tips for Report Writing}
-\textbf{REMOVE THIS SECTION BEFORE SUBMITTING THE REPORT.}\\
-
-\noindent \textit{The target audience has exactly the same skills as the author, except they do not know anything at all about the specific program described in the report.} \\
-
-Consider the following:
-
-\begin{itemize}
-  \item \textbf{The report must be \textit{centered around the requirements}. Which are they (Introduction), how did you work to meet them (Method), what is the solution that meets them (Result), and how can you be sure they are met (Discussion). This is the IMRaD method.}
-
-  \item \textbf{The report must show that you have done the work yourself and that you have understood what you have done. Both of these goals are met by carefully explaining the source code.}
-
-  \item Is spelling and grammar correct? Is spoken language avoided?
-
-  \item Does the report have a good structure with sections, subsections and paragraphs?
-
-  \item Is the solution clearly explained? Will the reader understand the program? What would you yourself want to know if you read about the program, is that included in the report?
-
-  \item Is the solution analyzed and evaluated? Are important properties of the program explained? Should there have been more extensive evaluation?
-
-  \item Is the text clarified with images and/or other figures, and with links to the code in your Git repository? Remember that all figures (images, tables, graphs, code listings, etc) shall be numbered and have a short explaining text.
-\end{itemize}
-
 \section{Introduction}
 
-\textbf{This section tells \textit{what} are you going to do.} \\
+Task
+\begin{itemize}
+\item{To write a distributed application that uses nonblocking TCP or UDP sockets.}
+\item{To use concurrent threads in nodes of said application which in turn improve scalability and performance}
+\end{itemize}
 
-\noindent Explain the task and the requirements on the solution. If you wrote the program together with other students, list their names and email addresses here.
+This is done by creating a hangman game with support for multiple concurrent clients, but this time using socketChannels and selectors instead of plain sockets.\\
+
+Requirements of the solution:
+\begin{itemize}
+\item{The application shall have a layered architecture.}
+\item{Only non-blocking sockets are used.}
+\item{Both the client and server is multithreaded.}
+\item{That the program works.}
+\end{itemize}
 
 \section{Literature Study}
 
-This section must prove that you collected sufficient knowledge before starting development, instead of just hacking away without knowing how to complete the task. State what you have read and briefly summarize what you have learned.
+I watched the lecture videos for the module. I have also read the chapters about nonblocking I/O and threads in the course book\footnote{Java Network Programming, 4th Edition, Developing Networked Applications, by Elliotte Rusty Harold, O'Reilly \& Ass., Inc., 2013}. Lastly I have referred to Oracle's Java Tutorials and Java Documentation pages to learn how specific functions are used.
+
+Through these sources I learned how to use SocketChannels and ServerSocketChannels, Buffers, and Selectors, and have gained a cursory understanding of the ForkJoinPool class and its uses.
 
 \section{Method}
 
-\textbf{This section tells \textit{how} you solved the task.} \\
-
-\noindent Explain how you worked when solving the task and how you evaluated that your solution met the requirements. Mention development tools and IDEs you used. \textit{Do not explain your solution and do not refer to code}, that belongs to the \textit{Result} section.
+I have worked alone, using IntelliJ IDEA.\\
+This time again I have worked in a compile-to-see-if-it-works way to ensure that the program works and follows the requirements.
 
 \section{Result}
 
-\textbf{This section explains \textit{the result} of what you did.} \\
+The code can be found at\\
+\url{https://github.com/trubb/id1212/tree/master/2_nonblocking_sockets/src}
 
-\noindent Present your solution and prove that it meets the requirements listed in the homework specification. Make sure to  \textit{clearly explain how you met each requirement}. You can, for example, write a separate subsection for each requirement, where you mention the requirement and explain how you met it. You can prove that a requirement is met by, for example, explaining source code related to the requirement. If so, include a link to that particular code in the Git repository, or clearly tell which method and class you intend. You can also prove that a requirement is met by including, and explaining, screenshots of the user interface.
+\begin{itemize}
+	\item{
+		Layered architecture\\
+		My solution uses three layers on the client side: a Controller layer, a Network layer, and a View layer.\\
+		The controller passes actions between the different layers.\\
+		The Network layer handles the connection to and communication with the server.\\
+		The View layer handles user input and output of messages from the server.\\
+		\\
+		For the Server the layers Network and Model are used.\\
+		The Network layer houses the Server's main class, which in turn invokes the \texttt{ClientHandler} for communicating with clients that connect. The \texttt{ClientHandler} then deals with the connected client.\\
+		In the Model layer the game class resides, like in the previous homework it is responsible only for performing game-related operations, and returning information about game state to the \texttt{ClientHandler} which in turn sends it to the Client.		
+	}
+	\item{
+		Use of only non-blocking sockets\\
+		Only the built-in sockets of the classes \texttt{SocketChannel} and \texttt{ServerSocketChannel} are used, and they have been configured to not block by passing \texttt{false} to their \texttt{configureBlocking()} methods.
+	}
+	\item{
+		Multithreaded Client and Server\\
+		Each Client runs its \texttt{Terminal} and \texttt{ServerConnection} classes in separate threads. And it is still possible to disconnect from the server while waiting for a response.\\
+		For each key that is ready to accept a connection on its channel a \texttt{ClientHandler} is created, which in turn deals with its client.\\
+		Reading of messages from clients is handled in the \texttt{ClientHandler} through a \texttt{ForkJoinPool}'s \texttt{commonPool}.
+	}
+	\item{
+		Program works as expected\\
+		Below are a couple of images showing the client UI as well as the server's StdOut, where the selected words as well as client guesses are shown.\\
+		In the first image a client plays a round. In the second image a client plays a round but decides to quit before receiving an answer from the server. The third image shows the server's terminal window during all of this.
+		\begin{center}
+			\includegraphics[width=.3\linewidth]{./images/client_googled.png}\quad\includegraphics[width=.3\linewidth]{./images/client_disconnect.png}\quad\includegraphics[width=.3\linewidth]{./images/server_cut.png}
+			\footnotesize{
+				Figures 1. 2. \& 3.\\Three images showing 1. a client playing a round. 2. a client playing a round but quitting midgame without waiting for a reply from the server. 3. The server's StdOut terminal when these actions were performed.
+			}
+		\end{center}
+	}
+\end{itemize}
 
-Also, prove that you participated in writing the program, and that you understand it in detail. You prove this by explaining essential parts of the source code.
+\subsection{Some code}
 
-\pagebreak
+The \texttt{initSelector()} method initializes the server's \texttt{Selector} and \texttt{ServerSocketChannel} by opening a selector; opening and configuring the \texttt{ServerSocketChannel} to not block. Binding the channel to the predefined \texttt{PORTNUMBER} and then registering the channel with the selector.
+\lstinputlisting[language=Java, firstline=41, lastline=48]{../2_nonblocking_sockets/src/server/net/Server.java}
+
+The \texttt{readMessage()} method of \texttt{ClientHandler} uses the somewhat misleading syntax to read a message from the \texttt{SocketChannel clientChannel} into the \texttt{ByteBuffer clientMessage} - or as you'd normally put it: write a message from the socketchannel into the buffer. If the amount of read bytes are equal to -1 the channel has reached end-of-stream and we don't have anything to do.
+If this hasn't happened then we deserialize the message and add its components to the queue for reading. After this we use \texttt{ForkJoinPool.commonPool().execute( this )} to execute \texttt{ClientHandler.run()} which interprets the message and takes an appropriate action. 
+\lstinputlisting[language=Java, firstline=73, lastline=80]{../2_nonblocking_sockets/src/server/net/ClientHandler.java}
+
 
 \section{Discussion}
 
-\textbf{This section \textit{analysis} the result presented in the previous section.} \\
+\begin{itemize}
+	\item{
+		Layered architecture\\
+		My implementation has a layered architecture where each discrete layer has a specific role.	
+	}
+	\item{
+		Use of only non-blocking sockets\\
+		I've only used the classes \texttt{ServerSocketChannel} and \texttt{SocketChannel}. And instead relied on their \texttt{.socket()} methods. The socketchannels have been configured to be nonblocking (\texttt{configureBlocking( false )}.	
+	}
+	\item{
+		Multithreaded Client and Server\\
+		Both the Client and Server uses multiple threads to run their components. The Server uses	\texttt{ForkJoinPool.commonPool().execute()} to parse messages in the \texttt{ClientHandler} class.
+	}
+	\item{
+		Program works as expected\\
+		The clients connect on startup, can start new game rounds, can quit even if they are waiting for a reply from the server, and are shown the current game state after each guess.\\
+		The server starts listening on port \texttt{48922} on startup, and deals with each connecting client in an appropriate manner. The server does not misbehave when a client disconnects.
+	}
+\end{itemize}
 
-\noindent Summarize the requirements and \textit{clearly state which of them you have met}. This might seem like a meaningless repetition of the Result section, but it is not. Here, you shall not prove that the requirements are met, just briefly state what you achieved, that is, which requirements where met. This summary is very useful when assessing your report. Also, explain what lessons you learned, what problems you faced, and how the problems were solved. Should something have been done differently?
+I found the syntax for reading and writing with \texttt{Buffer} and \texttt{Channel} classes to be somewhat confusing. The course book was quite helpful here, but overall the backwards syntax really threw me off.
+For this homework I again worked alone, but have sought out more help from peers and friends to clarify any questions I have had. 
+
+It felt like this assignment was a fair bit more complex, most likely because of the extra code required to work with channels and buffers compared to ordinary sockets.
 
 \section{Comments About the Course}
 
-Any comment(s) related to this course offering or to coming offerings is much appreciated. \textit{Please also tell approximately how much time you spent on the assignment}, including lectures and exercises. This is of great help for improving the course.
+I have spent somewhere around 45-55 hours on this assignment.\\
+A very large part of that time was spent reading about the new concepts, classes and methods that were introduced.
 
 \end{document}
