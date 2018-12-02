@@ -1,6 +1,5 @@
 package client.view;
 
-import client.FileUtil;
 import common.Catalog;
 import common.FileDTO;
 import common.UserDTO;
@@ -63,7 +62,7 @@ public class CatalogShell implements Runnable {
      */
     @Override
     public void run() {
-        outputManager.println( "file catalog started 'help' lists commands quit with 'quit'\n" );
+        outputManager.println( "file catalog started 'help' lists commands quit with 'quit'" );
         // print the prompt char
         outputManager.print( PROMPT );
 
@@ -78,12 +77,12 @@ public class CatalogShell implements Runnable {
                 // make sure that the user is logged in, if not tell them to log in
                 if (
                         user == null &&                             // if the user isnt logged in
-                        !command.equals( Command.REGISTER ) &&      // and if the command isnt register
-                        !command.equals( Command.UNREGISTER ) &&    // and if the command isnt unregister
-                        !command.equals( Command.LOGIN ) &&         // and if the command isnt login
-                        !command.equals( Command.QUIT ) &&          // and if the command isnt quit
-                        !command.equals( Command.HELP ) &&          // and if the command isnt help
-                        !command.equals( Command.NO_COMMAND )       // and if the command isnt illegal
+                                !command.equals( Command.REGISTER ) &&      // and if the command isnt register
+                                !command.equals( Command.UNREGISTER ) &&    // and if the command isnt unregister
+                                !command.equals( Command.LOGIN ) &&         // and if the command isnt login
+                                !command.equals( Command.QUIT ) &&          // and if the command isnt quit
+                                !command.equals( Command.HELP ) &&          // and if the command isnt help
+                                !command.equals( Command.NO_COMMAND )       // and if the command isnt illegal
                 ) {
                     // then they are trying to do stuff without being logged in, tell them off
                     outputManager.print( "you have to log in" );
@@ -95,6 +94,7 @@ public class CatalogShell implements Runnable {
                 switch ( command ) {
                     case QUIT:  // quit
                         running = false;
+                        outputManager.println("connection closed");
                         break;
                     case NO_COMMAND:    // if no command is provided then exit current loop so we can take another try
                         break;
@@ -136,19 +136,32 @@ public class CatalogShell implements Runnable {
                                     Boolean.parseBoolean( parsedLine.getArg(2) ),  // overwriteable
                                     Boolean.parseBoolean( parsedLine.getArg(3) )   // readable
                             );
+                            // Set user to be notified when someone changes the permissions of the file
+                            catalog.notify( this.user, parsedLine.getArg(0), this.notifyOutput );
                             outputManager.println( "uploaded file" );
                         } else {
                             outputManager.println( "gotta log in to upload" );
                         }
                         break;
                     case GET:
-                        if ( this.user != null ) {  // if the user is logged in we try to get the file
-                            // write the file to the clients local storage
-                            // TODO - ONLY GET THE METADATA like name or size
-                            FileUtil.writeFile( parsedLine.getArg(0), catalog.getFile( user, parsedLine.getArg(0) ) );
-                            outputManager.println( "file downloaded" );
-                        } else {
-                            outputManager.println( "gotta log in to download files" );
+                        // list files
+                        List<? extends FileDTO> get;
+                        if ( user != null ) {   // if a user is provided then we check for that user
+                            get = catalog.listAllFiles( user );
+                        } else {    // else we find all files
+                            get = catalog.listAllFiles();
+                        }
+                        outputManager.println( "filename (size [Bytes]) - private / write / read" );
+                        for ( FileDTO file : get ) { // for every file in the list display name, size, permissions
+                            if ( file.getName().equals( parsedLine.getArg(0) ) ) {
+                                outputManager.println(
+                                        file.getName() +                            // file name
+                                        " ( " + file.getDimension() + " B ) - " +   // file "size"
+                                        file.hasPrivateAccess() + " / " +           // file access
+                                        file.hasWritePermission() + " / " +         // write permission
+                                        file.hasReadPermission()                    // read permission
+                                );
+                            }
                         }
                         break;
                     case LIST:
@@ -167,7 +180,7 @@ public class CatalogShell implements Runnable {
                                     file.hasPrivateAccess() + " / " +           // file access
                                     file.hasWritePermission() + " / " +         // write permission
                                     file.hasReadPermission()                    // read permission
-                                );
+                            );
                         }
                         break;
                     case DELETE:
@@ -179,7 +192,7 @@ public class CatalogShell implements Runnable {
                             outputManager.println( "gotta log in to delete files" );
                         }
                         break;
-                    case UPDATE:
+                    case UPDATE:    // update the permissions of the file
                         if ( this.user != null ) {    // if the user is logged in we try to update the file
                             byte[] data = FileUtil.readFile( parsedLine.getArg(0) );  // take in the file
                             catalog.updateFile(
@@ -193,13 +206,6 @@ public class CatalogShell implements Runnable {
                             outputManager.println( "updated file" );
                         } else {
                             outputManager.println( "gotta log in to delete files" );
-                        }
-                        break;
-                    case NOTIFY:
-                        if ( this.user != null ) {    // if the user is logged in we try to notify
-                            catalog.notify( this.user, parsedLine.getArg(0), this.notifyOutput);
-                        } else {
-                            outputManager.println( "gotta log in to be notified" );
                         }
                         break;
                 }
@@ -231,5 +237,4 @@ public class CatalogShell implements Runnable {
             outputManager.print( PROMPT );
         }
     }
-
 }

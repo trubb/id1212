@@ -1,6 +1,6 @@
 package client;
 
-import client.view.Controller;
+import client.view.CatalogShell;
 import common.Catalog;
 
 import java.net.MalformedURLException;
@@ -19,7 +19,7 @@ public class Client {
             // find the catalog by name, which the server has set when starting
             Catalog catalog = (Catalog) Naming.lookup("catalog");
             // start the controller which in turn will handle everything for us
-            new Controller().start(catalog);
+            new CatalogShell().start(catalog);
         } catch (NotBoundException | MalformedURLException | RemoteException e) {
             // if something goes wrong with connecting we abort
             System.out.println("Could not start catalog shell!");
