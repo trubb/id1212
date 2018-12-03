@@ -1,0 +1,230 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{lastpage}
+\usepackage{pgf}
+\usepackage{hyperref}
+\usepackage{wrapfig}
+\usepackage{fancyvrb}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{lmodern}  % for bold teletype font
+\usepackage{amsmath}  % for \hookrightarrow
+\usepackage{xcolor}
+\pagestyle{fancy}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{myblue}{rgb}{0,0,0.6}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ 
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+%  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Java,                 % the language of the code
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+% Create header and footer
+\headheight 27pt
+\pagestyle{fancyplain}
+\lhead{\footnotesize{Network Programming, ID1212}}
+\chead{}
+\rhead{\footnotesize{Homework 3 - RMI and Databases}}
+\lfoot{}
+\cfoot{\thepage\ (\pageref{LastPage})}
+\rfoot{}
+
+% Create title page
+\title{Homework 3 - RMI and Databases}
+\subtitle{Network Programming, ID1212}
+\author{Erik Pettersson - erpette@kth.se}
+\date{2018-11-20}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Task
+\begin{itemize}
+\item{Develop a client-server distributed application which allows storing, retrieving, and removing of files to and from a file catalog.}
+\end{itemize}
+
+This is done by creating a client-server program which uses the Remote Method Invocation API to communicate.\\
+
+Requirements of the solution:
+\begin{itemize}
+\item{The application shall have a layered architecture.}
+\item{Only Remote Method Invication is used for communication.}
+\item{Only the server may register itself in an RMI registry.}
+\item{The server uses a database to store records about users and files.}
+\item{The client doesn't store any data.}
+\item{The user interface is run entirely on the client.}
+\item{The user interface must be informative.}
+\end{itemize}
+
+\section{Literature Study}
+
+I watched the lecture videos for the module and would have read the appropriate chapters in the course book\footnote{Java Network Programming, 4th Edition, Developing Networked Applications, by Elliotte Rusty Harold, O'Reilly \& Ass., Inc., 2013} had it contained any information about RMI.
+Lastly I have referred to Oracle's Java Tutorials and Java Documentation pages to learn how specific functions are used.
+
+Through these sources I learned about how RMI works and how to use a persistence framework to act on a database.
+
+\section{Method}
+
+I have worked alone but have discussed problems with setting up and implementing the program with both other students that take the course and friends of mine that have graduated and now work as IT consultants.
+I have used IntelliJ IDEA.\\
+I have again worked in a compile-to-see-if-it-works way to ensure that the program works and follows the requirements.
+
+\section{Result}
+
+The code can be found at\\
+\url{https://github.com/trubb/id1212/tree/master/3_remote_method_inv_db_access/src/main/java}
+
+\begin{itemize}
+	\item{
+		Layered architecture\\
+		My solution uses one layer on the client side: a View layer, as I felt it was most correct to bundle what classes I had on the client side there. Everything except setting up the connection is handled by the \texttt{CatalogShell} class, which for me made it logical to use this solution. Especially since the client lacks model and networking layers in this case.\\
+		\\
+		The server uses three layers: Controller, Integration, and Model.\\
+		The Controller is bound to the RMI registry so that the client can use it to perform actions on the server, namely working with the database.\\
+		The Integration layer houses Data Access Objects for File and User in order to enable actions on the database.\\
+		The Model layer contains the classes \texttt{File} and \texttt{User} which define File and User objects for the database. Here we define what columns shall be present in the File and User tables in the database.
+	}
+	\item{
+		Use of only Remote Method Invocation \& Only server registers itself in an RMI registry\\
+		On startup the server creates a new \texttt{Registry}, which the Client in turn connects to when starting by looking up the name of it.	\\
+	}
+	\item{
+		Server uses a database to store data\\
+		I use a Docker image to run a MySQL server which in turn the server connects to through the Persistence framework.
+	}
+	\item{
+		The client does not store any data\\
+		The client has local files that they can upload to the server, these are however not used to store any data. This means that if they are removed after uploading to the server the server still knows what it received.
+	}
+	\item{
+		Client handles user interface\\
+		All messages and UI-related calls are made on the client's end based on the returned values from the server.
+	}
+	\item{
+		Informative user interface\\
+		The client is presented with information that should make it clear what is going on and if a command was faulty what is needed.\\
+		If a command is passed that is lacking a parameter the user will be notified about it and no action will be performed on the server.
+	}
+\end{itemize}
+
+\subsection{Some code}
+\subsubsection{Registering a user}
+A user registers by providing a username and password.
+\lstinputlisting[language=Java, firstline=104, lastline=108]{../3_remote_method_inv_db_access/src/main/java/client/view/CatalogShell.java}
+The server checks if the username is already in use by searching the \texttt{File} table for the username.
+\lstinputlisting[language=Java, firstline=43, lastline=51]{../3_remote_method_inv_db_access/src/main/java/server/controller/Controller.java}
+Lastly the server stores the new user object in the database by using an \texttt{EntityManager}
+\lstinputlisting[language=Java, firstline=54, lastline=61]{../3_remote_method_inv_db_access/src/main/java/server/integration/UserDAO.java}
+
+\subsubsection{Uploading a file}
+A logged in user uploads a file by inputting the \texttt{filename} plus boolean \texttt{privacy level, public write, public read} permissions.\\
+The user is also set to be notified if any actions are taken on his file (line 16).
+\lstinputlisting[language=Java, firstline=125, lastline=145]{../3_remote_method_inv_db_access/src/main/java/client/view/CatalogShell.java}
+The server then uses the \texttt{File Data Access Object} to first check if there already exists such a file in the database, and if there is none, insert the selected file into the database.
+\lstinputlisting[language=Java, firstline=127, lastline=135]{../3_remote_method_inv_db_access/src/main/java/server/controller/Controller.java}
+Lastly the server stores the file in the database by using an \texttt{EntityManager}
+\lstinputlisting[language=Java, firstline=84, lastline=91]{../3_remote_method_inv_db_access/src/main/java/server/integration/FileDAO.java}
+
+\subsubsection{Listing files}
+A logged in user uses the command \texttt{list <username (optional)>} to list the publicly accessible files in the database.
+I chose this solution after discussing with a costudent who argued that it is a good idea to not list someones \texttt{private} files - that is files with the \texttt{privateAccess} flag set to \texttt{true}.
+\lstinputlisting[language=Java, firstline=167, lastline=185]{../3_remote_method_inv_db_access/src/main/java/client/view/CatalogShell.java}
+The server returns a list of files matching the search criteria. We assume a username was provided, if no user was provided \texttt{null} is used as search criteria, meaning we get all files.
+\lstinputlisting[language=Java, firstline=104, lastline=114]{../3_remote_method_inv_db_access/src/main/java/server/controller/Controller.java}
+Lastly the server retrieves the list of files by a call to the \texttt{File Data Access Object}.
+\lstinputlisting[language=Java, firstline=50, lastline=27]{../3_remote_method_inv_db_access/src/main/java/server/integration/FileDAO.java}
+
+
+\section{Discussion}
+
+\begin{itemize}
+	\item{
+		Layered architecture\\
+		My implementation has a layered architecture where each discrete layer has a specific role.
+		The client's view layer contains almost everything, under the circumstances I feel it is the right choice, if a somewhat odd one.
+	}
+	\item{
+		Use of only Remote Method Invocation \& Only server registers itself in an RMI registry\\
+		The connection is handled through a registry, no sockets or the like are used to establish communication.
+	}
+	\item{
+		Server uses a database to store data\\
+		I use a MySQL database that is run in a Docker container. Setting it up was probably the easiest part of my setup process, actually connecting to it was quite annoying and convoluted compared to creating the container due to Intellij.
+	}
+	\item{
+		The client does not store any data\\
+		The only data the client ever has stored on their end is the files they might want to upload. I have not implemented transferring of files between the client and server or vice versa. The download command instead lists the metadata for the sought-after file.
+	}
+	\item{
+		Client handles user interface\\
+		No messages are printed through the server, the client gets sent responses and handles them accordingly.
+	}
+	\item{
+		Informative user interface\\
+		The client is presented with information that should make it clear what is going on and if a command was faulty what is needed.\\
+		If a command is passed that is lacking a parameter the user will be notified about it and no action will be performed on the server.
+	}
+\end{itemize}
+
+For this homework I again worked alone, but have discussed the task at hand to a large degree with both fellow students, and people working as IT consultants. 
+
+If the previous assignment was complex this assignment was pure chaos. The coding and concepts was somewhat straightforward, but the process of setting things up in the IDE was straight up confusing and overly complicated with critical options hiding in confusing formulations in subsubsubmenus.
+
+\section{Comments About the Course}
+
+I am unable to give an accurate estimate of time spent on this assignment. I do however know that I have spent all my available time on it, meaning that had I had an assignment due in any other course running in parallel I would have had to choose one or the other. I know many students are taking the Operating Systems course together with this one and it makes me really happy that I am not forced to take both at once.\\
+
+I feel the assignment had way too little time allocated for it, despite spanning 1.5 weeks it could easily have used at least 3 more days to make it actually feasible.
+
+One solution to cut the required time could be to provide an already set up project where the task is to create the connection and perform actions on the database. Meaning that the students would be able to bypass the complex and confusing setup stage.\\
+
+The reaction I received from my IT consultant friends when I told them I would be doing an assignment on RMI was this:\\
+\texttt{
+17:03:53 @xealot du borde ge en counter point\\
+17:04:02 @xealot att det är slöseri med tid att lära sig RMI\\
+17:04:07 @xealot för det är inget någon borde använda någonsin\\
+17:43:07 @dahlgren RMI är skit\\
+17:43:32 @dahlgren ett bottenlöst hål av nätverksbuggar\\
+17:47:17 @dahlgren tänk remoteExec i kombination med att du racear mot en stack overflow\\
+17:48:04 @dahlgren vi fick någon rolig RMI registry hanterare när vi gjorde labbarna\\
+17:48:08 @dahlgren men det var betalprogram\\
+17:48:17 @dahlgren så var man inte klar innan trialen gick ut så var det tough luck\\
+...\\
+20:05:36 @xealot alltså\\
+20:05:41 @xealot om man tänker att RMI är lösningen på ett problem\\
+20:05:45 @xealot så har du tänkt fel\\
+20:06:06 @xealot det kan låta bra på papper vid en första anblick men då är man bara lat om man vill seamlessly köra java kod över nätverk
+}
+\begin{center}
+	Quotes from Björn Dahlgren and Marting Engström from the company Slagkryssaren in the channel #Anrop.net@Quakenet
+\end{center}
+\end{document}

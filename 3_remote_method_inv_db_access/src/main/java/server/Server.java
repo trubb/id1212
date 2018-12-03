@@ -42,18 +42,3 @@ public class Server {
     }
 
 }
-
-/*
-DONE - owner defines who has full access, if read access then a user can list the file, if write then a user can overwrite
-DONE - notify users to deletion
-DONE - notify users to updates
-DONE - functional update
-DONE - user can also define if private, mer verklighetstroget att ha den restriktionen med
-DONE - can register login/logout, actions requires login
-DONE - registering requires unique username, and a password
-DONE - logging in requires username and password, verified by server
-DONE - user can "upload" a local file to the server, and "download" them
-DONE - a file can be accessed by any user that is registered
-DONE - all users can list all files and their attributes (metadata)
-DONE - the owner is notified when other users access their files - OPT-IN only
- */
