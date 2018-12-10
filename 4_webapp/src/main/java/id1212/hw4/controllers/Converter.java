@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import java.util.Objects;
+
 @Controller
 public class Converter {
 
@@ -49,15 +51,24 @@ public class Converter {
         } else {
             result = convertCurrencies( conversion );
         }
+        this.conversion = new Conversion( conversion.getBaseCurrency(), conversion.getQuoteCurrency(), conversion.getAmount(), result );
+
+        return "redirect:/";
     }
 
     private double convertCurrencies (Conversion conversion) {
 
         Currency base = currencyRepository.findByCode( conversion.getBaseCurrency() );
         Currency quote = currencyRepository.findByCode( conversion.getQuoteCurrency() );
+        Rate rate = rateRepository.findByBaseCurrencyAndAndQuoteCurrency( base, quote );
 
-        // TODO - Sum_EUR = Sum_SEK * SEK / EUR
-        // TODO - IF EUR -> X THEN GO AHEAD, ELSE REVERSE RATE
+        if ( base.getCode().equals("EUR") ) {
+            return (double) Math.round( conversion.getAmount() * rate.getRate() );
+        } else {
+            // reverse the rate
+            double reverserate = reverseRate( rate.getRate() );
+            return (double) Math.round( conversion.getAmount() * reverserate );
+        }
     }
 
     /**
