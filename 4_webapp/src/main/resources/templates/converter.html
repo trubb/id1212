@@ -3,75 +3,47 @@
 <head>
     <meta charset="UTF-8"></meta>
     <title>Currency Converter</title>
-<!--
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
-    <link rel="stylesheet" href="/css/materialize.min.css" media="screen"/>
--->
 </head>
-<body style="height: 100vh; background-color: #F7F7F7">
-<div class="container valign-wrapper" style="height: 100%;align-items: center;justify-content: center;">
 
-    <div class="card" style="width: 50%">
-        <div class="card-content">
-            <span class="card-title center-align" style="margin-bottom: 3rem">Currency Conversion</span>
-            <form action="#" th:action="@{/convert}" th:object="${conversion}" method="post" class="center-align">
-                <div class="row">
-                    <div class="input-field col s4">
-                        <select th:field="*{fromCurrency}">
-                            <option th:each="currency : ${currencies}" th:value="${currency.code}"
-                                    th:text="${currency.code}"
-                                    th:selected="${currency.code} == ${conversion.fromCurrency}"></option>
-                        </select>
-                        <label>From currency:</label>
-                    </div>
+<body>
+    <span>Currency Conversion</span>
 
-                    <div class="input-field col s8">
-                        <input id="amount" type="number" th:field="*{amount}" th:value="${conversion.amount}"/>
-                        <label for="amount">Amount:</label>
-                    </div>
-                </div>§
-<!--
-                <div class="row center-align">
-                    <i class="medium material-icons" style="color: #009688">cached</i>
-                </div>
--->
-                <div class="row">
-                    <div class="input-field col s4">
-                        <select th:field="*{toCurrency}">
-                            <option th:each="currency : ${currencies}" th:value="${currency.code}"
-                                    th:text="${currency.code}"
-                                    th:selected="${currency.code} == ${conversion.toCurrency}"></option>
-                        </select>
-                        <label>To currency:</label>
-                    </div>
+    <form action="#" th:action="@{/convert}" th:object="${conversion}" method="post">
+                <select th:field="*{baseCurrency}">
+                    <option th:each="currency : ${currencies}" th:rate="${currency.code}"
+                            th:text="${currency.code}"
+                            th:selected="${currency.code} == ${conversion.baseCurrency}"></option>
+                </select>
+                <label>From currency:</label>
 
-                    <div class="input-field col s8">
-                        <input id="result" type="number" th:value="${conversion.result}" readonly="readonly"/>
-                        <label for="result">Result:</label>
-                    </div>
-                </div>
+                <input id="amount" type="number" th:field="*{amount}" th:rate="${conversion.amount}"/>
+                <label for="amount">Amount:</label>
 
-                <div class="row">
-                    <div class="input-field col s6">
-                        <button type="submit" class="btn teal">Calculate</button>
-                    </div>
-                    <div class="input-field col s6">
-                        <a th:href="@{/reset}" class="btn blue-grey">Reset</a>
-                    </div>
-                </div>
-            </form>
-        </div>
 
-    </div>
-</div>
-<!--
-<script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
-<script type="text/javascript" src="/js/materialize.min.js"></script>
-<script>
-    $(document).ready(function () {
-        $('select').material_select();
-    });
-</script>
--->
+                <select th:field="*{quoteCurrency}">
+                    <option th:each="currency : ${currencies}" th:rate="${currency.code}"
+                            th:text="${currency.code}"
+                            th:selected="${currency.code} == ${conversion.quoteCurrency}"></option>
+                </select>
+                <label>To currency:</label>
+
+                <input id="result" type="number" th:rate="${conversion.result}" readonly="readonly"/>
+                <label for="result">Result:</label>
+
+                <button type="submit" class="btn teal">Calculate</button>
+                <a th:href="@{/reset}" class="btn blue-grey">Reset</a>
+    </form>
+
+
+    <table>
+        <th:block th:each="currency : ${currencies}">
+            <tr>
+                <td th:text="${currency.code}">...</td>
+                <td th:text="${currency.rate}">...</td>
+            </tr>
+        </th:block>
+    </table>
+
+
 </body>
 </html>

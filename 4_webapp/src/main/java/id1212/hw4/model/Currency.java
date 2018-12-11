@@ -14,10 +14,13 @@ public class Currency {
 
     private String code;
 
+    private double rate;
+
     public Currency(){}
 
-    public Currency(String code) {
+    public Currency(String code, double rate) {
         this.code = code;
+        this.rate = rate;
     }
 
     public String getCode() {
@@ -26,5 +29,13 @@ public class Currency {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public double getRate() {
+        return rate;
+    }
+
+    public void setRate(double rate) {
+        this.rate = rate;
     }
 }
