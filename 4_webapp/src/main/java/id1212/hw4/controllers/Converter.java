@@ -18,7 +18,6 @@ public class Converter {
 
     private Iterable<Currency> currencies;
     private Conversion conversion;
-    private Currency currency;
 
     @Autowired
     public Converter(CurrencyRepository currencyRepository) {
@@ -30,7 +29,6 @@ public class Converter {
     @GetMapping(value = "/")
     public String converter (Model model) {
         model.addAttribute("currencies", currencies);   // add currencies as attribute in model
-        //model.addAttribute("currency", currency); // needed??? We never use it but wtf thymeleaf
         if ( !model.containsAttribute("conversion") ) {
             model.addAttribute("conversion", conversion);   // add a conversion as attribute
         }
