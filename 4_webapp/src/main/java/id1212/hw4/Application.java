@@ -41,14 +41,21 @@ public class Application implements CommandLineRunner {
 
     /**
      * Insert currencies into the database
+     * We're using EUR as base, all other values
+     * reflect how many CURRENCY you get per EUR
      */
     private void currenciesToDB() {
         HashMap<String, Double> currencies = new HashMap<>();
         currencies.put("EUR", 1.0000);   // -> 1 EUR per EUR
-        currencies.put("USD", 1.137249); // -> 0.87931490816 EUR per USD
-        currencies.put("GBP", 0.891648); // -> 1.12151880563 EUR per GBP
-        currencies.put("SEK", 10.252522);    // -> 0.09753697675 EUR per SEK
+        currencies.put("USD", 1.137249); // -> 0.87931490816 USD per EUR
+        currencies.put("GBP", 0.891648); // -> 1.12151880563 GBP per EUR
+        currencies.put("SEK", 10.252522);    // -> 0.09753697675 SEK per EUR
+        // TODO - ADD MORE HERE
 
+        // empty DB so we dont have to do it manually each time we test
+        currencyRepository.deleteAll();
+
+        // put each item from the above list into the DB
         for (Map.Entry<String, Double> entry : currencies.entrySet()) {
             currencyRepository.save( new Currency( entry.getKey(), entry.getValue() ) );
             System.out.println( "key " + entry.getKey() + " value: " + entry.getValue() );

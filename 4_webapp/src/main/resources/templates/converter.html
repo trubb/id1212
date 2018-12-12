@@ -1,49 +1,42 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8"></meta>
+    <meta charset="UTF-8">
     <title>Currency Converter</title>
 </head>
+
+<!-- TODO - STYLING -->
 
 <body>
     <span>Currency Conversion</span>
 
-    <form action="#" th:action="@{/convert}" th:object="${conversion}" method="post">
-                <select th:field="*{baseCurrency}">
-                    <option th:each="currency : ${currencies}" th:rate="${currency.code}"
-                            th:text="${currency.code}"
-                            th:selected="${currency.code} == ${conversion.baseCurrency}"></option>
-                </select>
-                <label>From currency:</label>
+        <form action="#" th:action="@{/convert}" th:object="${conversion}" method="post">
 
-                <input id="amount" type="number" th:field="*{amount}" th:rate="${conversion.amount}"/>
-                <label for="amount">Amount:</label>
+            <select th:field="*{baseCurrency}">
+                <option th:each="currency : ${currencies}" th:value="${currency.code}"
+                        th:text="${currency.code}"
+                        th:selected="${currency.code} == ${conversion.baseCurrency}"></option>
+            </select>
+            <label>From currency:</label>
 
-
-                <select th:field="*{quoteCurrency}">
-                    <option th:each="currency : ${currencies}" th:rate="${currency.code}"
-                            th:text="${currency.code}"
-                            th:selected="${currency.code} == ${conversion.quoteCurrency}"></option>
-                </select>
-                <label>To currency:</label>
-
-                <input id="result" type="number" th:rate="${conversion.result}" readonly="readonly"/>
-                <label for="result">Result:</label>
-
-                <button type="submit" class="btn teal">Calculate</button>
-                <a th:href="@{/reset}" class="btn blue-grey">Reset</a>
-    </form>
+            <input id="amount" type="number" th:field="*{amount}" th:value="${conversion.amount}"/>
+            <label for="amount">Amount:</label>
 
 
-    <table>
-        <th:block th:each="currency : ${currencies}">
-            <tr>
-                <td th:text="${currency.code}">...</td>
-                <td th:text="${currency.rate}">...</td>
-            </tr>
-        </th:block>
-    </table>
+            <select th:field="*{quoteCurrency}">
+                <option th:each="currency : ${currencies}" th:value="${currency.code}"
+                        th:text="${currency.code}"
+                        th:selected="${currency.code} == ${conversion.quoteCurrency}"></option>
+            </select>
+            <label>To currency:</label>
 
+            <input id="result" type="number" th:value="${conversion.result}" readonly="readonly"/>
+            <label for="result">Result:</label>
+
+            <button type="submit" class="btn teal">Calculate</button>
+            <a th:href="@{/reset}" class="btn blue-grey">Reset</a>
+
+        </form>
 
 </body>
 </html>
