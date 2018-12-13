@@ -34,12 +34,12 @@ public class Application implements CommandLineRunner {
     public void run (String... strings) throws Exception {
         fillHashMap();
         currenciesToDB();
-        // print to show what hits the db, just a check TODO - REMOVE THIS
+        // print to show what hits the db, to show that we are inserting a bunch of things
         Iterable<Currency> currencies = currencyRepository.findAll();
         for (Currency currency : currencies) {
             System.out.println( currency.getCode() + " " + currency.getRate() );
         }
-        System.out.println("\n\nI AM DONE NOW");
+        System.out.println("\n\nDone inserting into the database!");
     }
 
     /**

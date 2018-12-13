@@ -8,6 +8,7 @@
 \usepackage{wrapfig}
 \usepackage{fancyvrb}
 \usepackage{fancyhdr}
+\usepackage[official]{eurosym}
 \usepackage{listings}
 \usepackage{lmodern}  % for bold teletype font
 \usepackage{amsmath}  % for \hookrightarrow
@@ -50,16 +51,16 @@
 \pagestyle{fancyplain}
 \lhead{\footnotesize{Network Programming, ID1212}}
 \chead{}
-\rhead{\footnotesize{Homework 3 - RMI and Databases}}
+\rhead{\footnotesize{Homework 4 - Frameworks and Web-based Applications}}
 \lfoot{}
 \cfoot{\thepage\ (\pageref{LastPage})}
 \rfoot{}
 
 % Create title page
-\title{Homework 3 - RMI and Databases}
+\title{Homework 4 - Frameworks and Web-based Applications}
 \subtitle{Network Programming, ID1212}
 \author{Erik Pettersson - erpette@kth.se}
-\date{2018-11-20}
+\date{2018-12-14}
 
 \begin{document}
 
@@ -67,101 +68,103 @@
 
 \section{Introduction}
 
-Task
+Task:
 \begin{itemize}
-\item{Develop a client-server distributed application which allows storing, retrieving, and removing of files to and from a file catalog.}
+	\item{Develop a three-tier web-based application for online currency conversion.}
 \end{itemize}
 
-This is done by creating a client-server program which uses the Remote Method Invocation API to communicate.\\
+This is done by creating a client-server program which uses the frameworks Spring and Thymeleaf.
 
 Requirements of the solution:
 \begin{itemize}
-\item{The application shall have a layered architecture.}
-\item{Only Remote Method Invication is used for communication.}
-\item{Only the server may register itself in an RMI registry.}
-\item{The server uses a database to store records about users and files.}
-\item{The client doesn't store any data.}
-\item{The user interface is run entirely on the client.}
-\item{The user interface must be informative.}
+	\item{The application shall have a layered architecture.}
+	\item{The \texttt{Converter} must be able to convert between $\geq$ 4 currencies.}
+	\item{The \texttt{Client} must be a web browser.}
+	\item{Frameworks must be used for all layers. E.g. \texttt{Thymeleaf} for the view, \texttt{Spring} for controllers, and \texttt{Spring/JPA} for the model and integration.}
+	\item{The \texttt{Server} must handle transactions, e.g. by using the \texttt{@Transactional} annotation from \texttt{Spring}.}
+	\item{The conversion rates must be stored in a database.}
+	\item{The user interface must be informative.}
 \end{itemize}
+
+\newpage
 
 \section{Literature Study}
 
-I watched the lecture videos for the module and would have read the appropriate chapters in the course book\footnote{Java Network Programming, 4th Edition, Developing Networked Applications, by Elliotte Rusty Harold, O'Reilly \& Ass., Inc., 2013} had it contained any information about RMI.
-Lastly I have referred to Oracle's Java Tutorials and Java Documentation pages to learn how specific functions are used.
-
-Through these sources I learned about how RMI works and how to use a persistence framework to act on a database.
+I watched the lecture videos for the module and would have read the appropriate chapters in the course book\footnote{Java Network Programming, 4th Edition, Developing Networked Applications, by Elliotte Rusty Harold, O'Reilly \& Ass., Inc., 2013} had it contained any information about Spring and Thymeleaf.\\
+I have instead to some degree referred to Oracle's Java Tutorials and Java Documentation pages, but mainly I have looked at Spring's own documentation and guides\footnote{\url{https://spring.io/guides}} along with Baeldung's guides\footnote{\url{https://www.baeldung.com/start-here}}, Thymeleaf's documentation\footnote{\url{https://www.thymeleaf.org/doc/tutorials/2.1/thymeleafspring.html}}, and a hefty dose of Stackoverflow\footnote{\url{https://stackoverflow.com/}} questions.
 
 \section{Method}
 
-I have worked alone but have discussed problems with setting up and implementing the program with both other students that take the course and friends of mine that have graduated and now work as IT consultants.
+I have worked alone but have discussed my work with the assignment with both other students that are currently taking the course and friends of mine that have graduated and now work as IT consultants.\\
 I have used IntelliJ IDEA.\\
 I have again worked in a compile-to-see-if-it-works way to ensure that the program works and follows the requirements.
+
 
 \section{Result}
 
 The code can be found at\\
-\url{https://github.com/trubb/id1212/tree/master/3_remote_method_inv_db_access/src/main/java}
+\url{https://github.com/trubb/id1212/tree/master/4_webapp}
 
 \begin{itemize}
 	\item{
 		Layered architecture\\
-		My solution uses one layer on the client side: a View layer, as I felt it was most correct to bundle what classes I had on the client side there. Everything except setting up the connection is handled by the \texttt{CatalogShell} class, which for me made it logical to use this solution. Especially since the client lacks model and networking layers in this case.\\
-		\\
+		My solution uses a \texttt{Web Browser} as the client for this program. The \texttt{Web Browser} handles everything from connecting to and communicating with the server to displaying the result.\\
 		The server uses three layers: Controller, Integration, and Model.\\
-		The Controller is bound to the RMI registry so that the client can use it to perform actions on the server, namely working with the database.\\
-		The Integration layer houses Data Access Objects for File and User in order to enable actions on the database.\\
-		The Model layer contains the classes \texttt{File} and \texttt{User} which define File and User objects for the database. Here we define what columns shall be present in the File and User tables in the database.
+		The Controller contains the \texttt{Converter} class, which uses the \texttt{@Controller} mapping in Spring to designate itself as the component that deals with HTTP requests. The \texttt{Converter} is also the component that deals with the calculation of converting between currencies.\\
+		The Integration layer houses a Data Access Object (DAO) for the currencies in order to enable actions on the database.\\
+		The Model layer contains the classes \texttt{Currency} and \texttt{Conversion} which define the Currency object for the database, and a helper class for performing conversions respectively. In the \texttt{Currency} class we define what columns shall be present in the \texttt{Currency} table in the database and provide getters and setters for acting upon currency objects.
 	}
 	\item{
-		Use of only Remote Method Invocation \& Only server registers itself in an RMI registry\\
-		On startup the server creates a new \texttt{Registry}, which the Client in turn connects to when starting by looking up the name of it.	\\
+		Can convert between at least 4 different currencies\\
+		Yes, it is possible to convert between an arbitrary number of currencies as long as a value and a unique code is provided.\\
+		Currently the following currencies are represented in the program:\\
+		\texttt{
+			AED, AFN, ALL, AMD, ANG, AOA, ARS, AUD, AWG, AZN, BAM, BBD, BDT, BGN, BHD, BIF, BMD, BND, BOB, BRL, BSD, BTC, BTN, BWP, BYN, BYR, BZD, CAD, CDF, CHF, CLF, CLP, CNY, COP, CRC, CUC, CUP, CVE, CZK, DJF, DKK, DOP, DZD, EGP, ERN, ETB, EUR, FJD, FKP, GBP, GEL, GGP, GHS, GIP, GMD, GNF, GTQ, GYD, HKD, HNL, HRK, HTG, HUF, IDR, ILS, IMP, INR, IQD, IRR, ISK, JEP, JMD, JOD, JPY, KES, KGS, KHR, KMF, KPW, KRW, KWD, KYD, KZT, LAK, LBP, LKR, LRD, LSL, LTL, LVL, LYD, MAD, MDL, MGA, MKD, MMK, MNT, MOP, MRO, MUR, MVR, MWK, MXN, MYR, MZN, NAD, NGN, NIO, NOK, NPR, NZD, OMR, PAB, PEN, PGK, PHP, PKR, PLN, PYG, QAR, RON, RSD, RUB, RWF, SAR, SBD, SCR, SDG, SEK, SGD, SHP, SLL, SOS, SRD, STD, SVC, SYP, SZL, THB, TJS, TMT, TND, TOP, TRY, TTD, TWD, TZS, UAH, UGX, USD, UYU, UZS, VEF, VND, VUV, WST, XAF, XAG, XAU, XCD, XDR, XOF, XPF, YER, ZAR, ZMK, ZMW, ZWL
+		}
 	}
 	\item{
-		Server uses a database to store data\\
-		I use a Docker image to run a MySQL server which in turn the server connects to through the Persistence framework.
+		Client is a web browser\\
+		Yes, it is. I have used \texttt{Firefox} to view the page that is created by the program which, in turn uses \texttt{Thymeleaf} for page creation.
 	}
 	\item{
-		The client does not store any data\\
-		The client has local files that they can upload to the server, these are however not used to store any data. This means that if they are removed after uploading to the server the server still knows what it received.
+		Frameworks all the way down\\
+		I use \texttt{Spring} for the controller, \texttt{Spring/JPA} for model and integration, and \texttt{Thymeleaf} for the view.
 	}
 	\item{
-		Client handles user interface\\
-		All messages and UI-related calls are made on the client's end based on the returned values from the server.
+		Server handles transactions\\
+		When the client sends a \texttt{POST} request by clicking the "\texttt{calculate}" button the server will try to calculate the result.
+	}
+	\item{
+		Conversion rates stored in a database\\
+		I once more use Docker to run a MySQL server as the one-line setup is far superior to any other solution.\\
+		I have used \texttt{Euro (\euro{}, EUR)} as the base for all rates. Rate data has been retrieved from \texttt{Fixer} \footnote{\url{https://fixer.io/}} and is put into the database in the \texttt{Application} class.\\
+		This could easily be extended to use Fixer's API to download the data directly as a JSON object and put its contents into the database.
 	}
 	\item{
 		Informative user interface\\
-		The client is presented with information that should make it clear what is going on and if a command was faulty what is needed.\\
-		If a command is passed that is lacking a parameter the user will be notified about it and no action will be performed on the server.
+		The client is presented with a form containing:\\
+		Two dropdowns menus: one for selecting the currency to convert from, and one for selecting the currency to convert to.\\
+		A field for inputting the amount to be converted, and a field that will display the sum of the conversion.
 	}
 \end{itemize}
 
 \subsection{Some code}
-\subsubsection{Registering a user}
-A user registers by providing a username and password.
-\lstinputlisting[language=Java, firstline=104, lastline=108]{../3_remote_method_inv_db_access/src/main/java/client/view/CatalogShell.java}
-The server checks if the username is already in use by searching the \texttt{File} table for the username.
-\lstinputlisting[language=Java, firstline=43, lastline=51]{../3_remote_method_inv_db_access/src/main/java/server/controller/Controller.java}
-Lastly the server stores the new user object in the database by using an \texttt{EntityManager}
-\lstinputlisting[language=Java, firstline=54, lastline=61]{../3_remote_method_inv_db_access/src/main/java/server/integration/UserDAO.java}
+\subsubsection{Putting currency data into the database}
+Currencies are put into a \texttt{HashMap} \texttt{currencies} with the currency code as the key and the exchange rate as the value.
+\lstinputlisting[language=Java, firstline=45, lastline=56]{../4_webapp/src/main/java/id1212/hw4/Application.java}
+The currencies are then put into the database as currency objects.
+\lstinputlisting[language=Java, firstline=222, lastline=233]{../4_webapp/src/main/java/id1212/hw4/Application.java}
 
-\subsubsection{Uploading a file}
-A logged in user uploads a file by inputting the \texttt{filename} plus boolean \texttt{privacy level, public write, public read} permissions.\\
-The user is also set to be notified if any actions are taken on his file (line 16).
-\lstinputlisting[language=Java, firstline=125, lastline=145]{../3_remote_method_inv_db_access/src/main/java/client/view/CatalogShell.java}
-The server then uses the \texttt{File Data Access Object} to first check if there already exists such a file in the database, and if there is none, insert the selected file into the database.
-\lstinputlisting[language=Java, firstline=127, lastline=135]{../3_remote_method_inv_db_access/src/main/java/server/controller/Controller.java}
-Lastly the server stores the file in the database by using an \texttt{EntityManager}
-\lstinputlisting[language=Java, firstline=84, lastline=91]{../3_remote_method_inv_db_access/src/main/java/server/integration/FileDAO.java}
+\subsubsection{Serving a HTML page from a Controller}
+The \texttt{@Controller}-labeled \texttt{Converter} handles HTTP requests, when first accessed at (in my case) \texttt{localhost:8080/} the HTML file \texttt{converter.html} is served to the browser.
+\lstinputlisting[language=Java, firstline=33, lastline=45]{../4_webapp/src/main/java/id1212/hw4/controllers/Converter.java}
+When the user has selected currencies to convert between, filled in an amount to convert, and pressed the button labeled \texttt{"Convert"} they are served with a new \texttt{converter.html} page, but this time with a \texttt{Conversion} object that contains their selected currencies along with the amount and the result of the conversion.
+\lstinputlisting[language=Java, firstline=47, lastline=67]{../4_webapp/src/main/java/id1212/hw4/controllers/Converter.java}
 
-\subsubsection{Listing files}
-A logged in user uses the command \texttt{list <username (optional)>} to list the publicly accessible files in the database.
-I chose this solution after discussing with a costudent who argued that it is a good idea to not list someones \texttt{private} files - that is files with the \texttt{privateAccess} flag set to \texttt{true}.
-\lstinputlisting[language=Java, firstline=167, lastline=185]{../3_remote_method_inv_db_access/src/main/java/client/view/CatalogShell.java}
-The server returns a list of files matching the search criteria. We assume a username was provided, if no user was provided \texttt{null} is used as search criteria, meaning we get all files.
-\lstinputlisting[language=Java, firstline=104, lastline=114]{../3_remote_method_inv_db_access/src/main/java/server/controller/Controller.java}
-Lastly the server retrieves the list of files by a call to the \texttt{File Data Access Object}.
-\lstinputlisting[language=Java, firstline=50, lastline=27]{../3_remote_method_inv_db_access/src/main/java/server/integration/FileDAO.java}
+\subsubsection{Converting between any two currencies}
+As we use \texttt{Euro} as the base for all currencies, we can convert between any two currencies by using the following formula: $result = amountFROM / rateFROM * rateTO$.\\
+We get the rates by selecting the two currencies from the database and then using the currency objects' \texttt{getRate()} methods.
+\lstinputlisting[language=Java, firstline=79, lastline=89]{../4_webapp/src/main/java/id1212/hw4/controllers/Converter.java}
 
 
 \section{Discussion}
@@ -170,61 +173,46 @@ Lastly the server retrieves the list of files by a call to the \texttt{File Data
 	\item{
 		Layered architecture\\
 		My implementation has a layered architecture where each discrete layer has a specific role.
-		The client's view layer contains almost everything, under the circumstances I feel it is the right choice, if a somewhat odd one.
 	}
 	\item{
-		Use of only Remote Method Invocation \& Only server registers itself in an RMI registry\\
-		The connection is handled through a registry, no sockets or the like are used to establish communication.
+		Can convert between at least 4 different currencies\\
+		Yes, it is possible to convert between an arbitrary number of currencies as long as a value and a unique code is provided. The currencies and their rates are defined in the file \texttt{Application.java}.
 	}
 	\item{
-		Server uses a database to store data\\
-		I use a MySQL database that is run in a Docker container. Setting it up was probably the easiest part of my setup process, actually connecting to it was quite annoying and convoluted compared to creating the container due to Intellij.
+		Client is a web browser\\
+		Yes, it is. I have used \texttt{Firefox} to view the page when working on the assignment. The program uses \texttt{Thymeleaf} for page creation.
 	}
 	\item{
-		The client does not store any data\\
-		The only data the client ever has stored on their end is the files they might want to upload. I have not implemented transferring of files between the client and server or vice versa. The download command instead lists the metadata for the sought-after file.
+		Frameworks all the way down\\
+		I use \texttt{Spring} for the controller, \texttt{Spring/JPA} for model and integration, and \texttt{Thymeleaf} for the view.
 	}
 	\item{
-		Client handles user interface\\
-		No messages are printed through the server, the client gets sent responses and handles them accordingly.
+		Server handles transactions\\
+		The client only displays the HTML pages that it is provided by the server.
+		I'm a bit stumped about how container-managed transactions in Spring are done, what is certain is that the server performs the conversions based on client input though, meaning that the client only displays the served pages.
+	}
+	\item{
+		Conversion rates stored in a database\\
+		For some reason this felt far easier than in the previous assignment, \texttt{Spring} handled most if not all of the configuration automagically, leaving me to focus on other things.
 	}
 	\item{
 		Informative user interface\\
-		The client is presented with information that should make it clear what is going on and if a command was faulty what is needed.\\
-		If a command is passed that is lacking a parameter the user will be notified about it and no action will be performed on the server.
+		The client is presented with a form containing the fields and menus. To build something that presented all information in a ordered manner felt much easier to do in HTML via \texttt{Thymeleaf} compared to e.g. the socket assignments.
 	}
 \end{itemize}
 
 For this homework I again worked alone, but have discussed the task at hand to a large degree with both fellow students, and people working as IT consultants. 
 
-If the previous assignment was complex this assignment was pure chaos. The coding and concepts was somewhat straightforward, but the process of setting things up in the IDE was straight up confusing and overly complicated with critical options hiding in confusing formulations in subsubsubmenus.
+This assignment seemed complex at first, but as a comparatively extremely large part of the system is obfuscated through the use of frameworks things quickly calmed down a fair bit. The fact that there were lots of documentation for starting new projects with Spring and Thymeleaf meant that it was very easy to do so, especially when compared to the previous assignment.\\
+Spring's and Thymeleaf's vast and detailed documentation also helped a lot.
+
 
 \section{Comments About the Course}
 
-I am unable to give an accurate estimate of time spent on this assignment. I do however know that I have spent all my available time on it, meaning that had I had an assignment due in any other course running in parallel I would have had to choose one or the other. I know many students are taking the Operating Systems course together with this one and it makes me really happy that I am not forced to take both at once.\\
+I have spent about the same amount of time on this assignment as I did on assignment 3. This time, however, I have felt far less stressed out about making the deadline, thanks to the longer period.
 
-I feel the assignment had way too little time allocated for it, despite spanning 1.5 weeks it could easily have used at least 3 more days to make it actually feasible.
+I am a bit worried about the overlap between assignment 5 and the project. I will probably end up doing the other task from assignment 1 due to this.
 
-One solution to cut the required time could be to provide an already set up project where the task is to create the connection and perform actions on the database. Meaning that the students would be able to bypass the complex and confusing setup stage.\\
+Having two weeks allocated for the assignment meant that I was able to feel confident in spending three days just learning about the frameworks and how to use them. This assignment, or the frameworks rather, had way more documentation available online, despite there being zero information in the coursebook.
 
-The reaction I received from my IT consultant friends when I told them I would be doing an assignment on RMI was this:\\
-\texttt{
-17:03:53 @xealot du borde ge en counter point\\
-17:04:02 @xealot att det är slöseri med tid att lära sig RMI\\
-17:04:07 @xealot för det är inget någon borde använda någonsin\\
-17:43:07 @dahlgren RMI är skit\\
-17:43:32 @dahlgren ett bottenlöst hål av nätverksbuggar\\
-17:47:17 @dahlgren tänk remoteExec i kombination med att du racear mot en stack overflow\\
-17:48:04 @dahlgren vi fick någon rolig RMI registry hanterare när vi gjorde labbarna\\
-17:48:08 @dahlgren men det var betalprogram\\
-17:48:17 @dahlgren så var man inte klar innan trialen gick ut så var det tough luck\\
-...\\
-20:05:36 @xealot alltså\\
-20:05:41 @xealot om man tänker att RMI är lösningen på ett problem\\
-20:05:45 @xealot så har du tänkt fel\\
-20:06:06 @xealot det kan låta bra på papper vid en första anblick men då är man bara lat om man vill seamlessly köra java kod över nätverk
-}
-\begin{center}
-	Quotes from Björn Dahlgren and Marting Engström from the company Slagkryssaren in the channel #Anrop.net@Quakenet
-\end{center}
 \end{document}

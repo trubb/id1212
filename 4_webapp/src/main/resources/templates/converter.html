@@ -4,36 +4,43 @@
     <meta charset="UTF-8">
     <title>Currency Converter</title>
 </head>
-
-<!-- TODO - STYLING -->
-
 <body>
     <span>Currency Conversion</span>
-
+        <!-- The conversion form, action taken when we submit it is /convert, acts on a conversion object, and uses HTTP POST -->
         <form action="#" th:action="@{/convert}" th:object="${conversion}" method="post">
 
+            <!-- Dropdown menu that lists all currencies present in the database through a foreach loop -->
             <select th:field="*{baseCurrency}">
                 <option th:each="currency : ${currencies}" th:value="${currency.code}"
                         th:text="${currency.code}"
                         th:selected="${currency.code} == ${conversion.baseCurrency}"></option>
             </select>
-            <label>From currency:</label>
+            <label>From</label>
+            <br/>
 
+            <!-- Input field for the amount to convert into the other currency -->
             <input id="amount" type="number" th:field="*{amount}" th:value="${conversion.amount}"/>
-            <label for="amount">Amount:</label>
+            <label for="amount">Amount</label>
+            <br/>
 
-
+            <!-- Dropdown menu that lists all currencies present in the database through a foreach loop -->
             <select th:field="*{quoteCurrency}">
                 <option th:each="currency : ${currencies}" th:value="${currency.code}"
                         th:text="${currency.code}"
                         th:selected="${currency.code} == ${conversion.quoteCurrency}"></option>
             </select>
-            <label>To currency:</label>
+            <label>To</label>
+            <br/>
 
+            <!-- Readonly input field for the result of the conversion -->
             <input id="result" type="number" th:value="${conversion.result}" readonly="readonly"/>
-            <label for="result">Result:</label>
+            <label for="result">Result</label>
+            <br/>
 
-            <button type="submit" class="btn teal">Calculate</button>
+            <!-- Submit button for the form -->
+            <button type="submit" class="btn teal">Convert</button>
+
+            <!-- Reset link which takes us to a cleared-out conversion form -->
             <a th:href="@{/reset}" class="btn blue-grey">Reset</a>
 
         </form>
