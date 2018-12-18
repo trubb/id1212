@@ -31,3 +31,11 @@ public class Server {
     }
 
 }
+
+/*
+SERVER
+DONE - serverns controller borde inte skicka meddelanden (metoden messages),
+        det borde ske i nätverkslagret.
+DONE - Controllern kunde helt enkelt returnera en sträng eller ett objekt med meddelandet,
+        som sedan skickas av ClientConnector.
+ */

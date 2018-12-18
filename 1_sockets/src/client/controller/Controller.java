@@ -1,12 +1,14 @@
 package client.controller;
 
 import client.net.ServerConnector;
+import client.view.ClientView;
 
 import java.io.IOException;
 
 public class Controller {
 
     private ServerConnector connection;
+    private ClientView clientView;
 
     /**
      * Asks the ServerConnector to start a new connection to the specified IP over the specified port
@@ -16,7 +18,8 @@ public class Controller {
      */
     public void connect ( String HOSTNAME, int PORTNUMBER ) throws IOException {
         try {
-            connection = new ServerConnector();
+            clientView = new ClientView();
+            connection = new ServerConnector( clientView );
             connection.connect( HOSTNAME, PORTNUMBER );
             System.out.println("Connected.\nAllowed commands are !PLAY and !QUIT");
         } catch (IOException e) {

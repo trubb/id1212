@@ -1,6 +1,6 @@
 package client;
 
-import client.controller.ClientInput;
+import client.view.ClientInput;
 import client.controller.Controller;
 
 import java.io.IOException;
@@ -27,3 +27,11 @@ public class Client {
     }
 
 }
+
+/*
+CLIENT
+DONE - klassen ClientInput på klienten borde helt enkelt flyttas till ett annat paket,
+        view, eftersom det är vyhantering.
+DONE - vyn skapas i klientens nätverkslager, i klassen Listen.
+        Det är där du anropar System.out.println
+ */

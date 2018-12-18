@@ -1,4 +1,6 @@
-package client.controller;
+package client.view;
+
+import client.controller.Controller;
 
 import java.io.IOException;
 import java.util.Scanner;

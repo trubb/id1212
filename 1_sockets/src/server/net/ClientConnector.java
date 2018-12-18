@@ -42,17 +42,25 @@ public class ClientConnector extends Thread {
                 while ( ( userInput = messageFromClient.readLine() ) != null ) {
 
                     if ( userInput.equals("!PLAY") ) {
-                        controller.startGame( messageToClient );
+                        controller.startGame();
+                        messageToClient.println( controller.message() );
 
                         while ( !userInput.equals("!QUIT") ) {
                             userInput = messageFromClient.readLine();
-                            controller.makeGuess( userInput, messageToClient );
+                            controller.makeGuess( userInput );
+                            messageToClient.println( controller.message() );
 
                             if ( controller.checkEquals() ) {
-                                controller.win( messageToClient );
+                                messageToClient.println( "\nYou made a correct guess\n" +
+                                        "The word was: " + controller.getWord() + "\n" );
+                                controller.win();
+                                messageToClient.println( controller.message() );
 
                             } else if ( controller.getAttempts() == 0) {
-                                controller.lose( messageToClient );
+                                messageToClient.println( "\nYou do not have any attempts left\n" +
+                                        "The word was: " + controller.getWord() + "\n" );
+                                controller.startGame();
+                                messageToClient.println( controller.message() );
                             }
                         }
 
@@ -71,9 +79,6 @@ public class ClientConnector extends Thread {
             } catch (IOException ioEx) {
                 System.out.println("Unable to disconnect!");
             }
-
         }
-
     }
-
 }

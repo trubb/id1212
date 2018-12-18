@@ -1,5 +1,7 @@
 package client.net;
 
+import client.view.ClientView;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -15,6 +17,15 @@ public class ServerConnector {
     private Socket socket;
     private PrintWriter messageToServer;
     private BufferedReader messageFromServer;
+    private ClientView clientView;
+
+    /**
+     * NEW: Construct the connector and point our local clientView to the passed clientView
+     * @param clientView
+     */
+    public ServerConnector(ClientView clientView) {
+        this.clientView = clientView;
+    }
 
     /**
      * Starts a connection to a server over the specified IP address and port
@@ -59,13 +70,14 @@ public class ServerConnector {
 
     /**
      * Listens for messages from the server
+     * NEW: passes them to the ClientView for printing
      */
     private class Listen implements Runnable {
         @Override
         public void run() {
             try {
                 while (true) {
-                    System.out.println("S: " + messageFromServer.readLine());
+                    clientView.receive( messageFromServer.readLine() );
                 }
             } catch (Throwable connectionFail) {
                 if ( socket == null ) {
