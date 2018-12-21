@@ -5,9 +5,6 @@ import client.controller.Controller;
 import java.io.IOException;
 import java.util.Scanner;
 
-/**
- * Handles user input and parses it to
- */
 public class ClientInput implements Runnable {
 
     private Controller controller;

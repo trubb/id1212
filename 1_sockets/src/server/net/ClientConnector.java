@@ -51,14 +51,16 @@ public class ClientConnector extends Thread {
                             messageToClient.println( controller.message() );
 
                             if ( controller.checkEquals() ) {
-                                messageToClient.println( "\nYou made a correct guess\n" +
-                                        "The word was: " + controller.getWord() + "\n" );
+                                messageToClient.println( controller.message(
+                                        "\nYou made a correct guess\n" +
+                                       "The word was: " + controller.getWord() + "\n" ) );
                                 controller.win();
                                 messageToClient.println( controller.message() );
 
                             } else if ( controller.getAttempts() == 0) {
-                                messageToClient.println( "\nYou do not have any attempts left\n" +
-                                        "The word was: " + controller.getWord() + "\n" );
+                                messageToClient.println( controller.message(
+                                        "\nYou do not have any attempts left\n" +
+                                        "The word was: " + controller.getWord() + "\n" ) );
                                 controller.startGame();
                                 messageToClient.println( controller.message() );
                             }

@@ -23,15 +23,6 @@ public class Client {
 
         ClientInput clientInput = new ClientInput( controller );
         clientInput.start();
-
     }
 
 }
-
-/*
-CLIENT
-DONE - klassen ClientInput på klienten borde helt enkelt flyttas till ett annat paket,
-        view, eftersom det är vyhantering.
-DONE - vyn skapas i klientens nätverkslager, i klassen Listen.
-        Det är där du anropar System.out.println
- */

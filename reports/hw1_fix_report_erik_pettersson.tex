@@ -1,0 +1,222 @@
+\documentclass[a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{lastpage}
+\usepackage{pgf}
+\usepackage{hyperref}
+\usepackage{wrapfig}
+\usepackage{fancyvrb}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{lmodern}  % for bold teletype font
+\usepackage{amsmath}  % for \hookrightarrow
+\usepackage{xcolor}
+\pagestyle{fancy}
+
+\definecolor{mygreen}{rgb}{0,0.6,0}
+\definecolor{myblue}{rgb}{0,0,0.6}
+\definecolor{mygray}{rgb}{0.5,0.5,0.5}
+\definecolor{mymauve}{rgb}{0.58,0,0.82}
+
+\lstset{ 
+  basicstyle=\ttfamily,
+  columns=fullflexible,
+  postbreak=\mbox{\textcolor{red}{$\hookrightarrow$}\space},
+%  backgroundcolor=\color{white},   % choose the background color; you must add \usepackage{color} or \usepackage{xcolor}; should come as last argument
+  breakatwhitespace=true,         % sets if automatic breaks should only happen at whitespace
+  breaklines=true,                 % sets automatic line breaking
+  captionpos=b,                    % sets the caption-position to bottom
+  commentstyle=\color{mygreen},    % comment style
+  frame=single,	                   % adds a frame around the code
+  keepspaces=true,                 % keeps spaces in text, useful for keeping indentation of code (possibly needs columns=flexible)
+  keywordstyle=\color{blue},       % keyword style
+  language=Java,                 % the language of the code
+  numbers=left,                    % where to put the line-numbers; possible values are (none, left, right)
+  numbersep=5pt,                   % how far the line-numbers are from the code
+  numberstyle=\tiny\color{mygray}, % the style that is used for the line-numbers
+  rulecolor=\color{black},         % if not set, the frame-color may be changed on line-breaks within not-black text (e.g. comments (green here))
+  showspaces=false,                % show spaces everywhere adding particular underscores; it overrides 'showstringspaces'
+  showstringspaces=false,          % underline spaces within strings only
+  showtabs=false,                  % show tabs within strings adding particular underscores
+  stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
+  stringstyle=\color{mymauve},     % string literal style
+  tabsize=2,	                   % sets default tabsize to 2 spaces
+  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+}
+
+% Create header and footer
+\headheight 27pt
+\pagestyle{fancyplain}
+\lhead{\footnotesize{Network Programming, ID1212}}
+\chead{}
+\rhead{\footnotesize{Homework 1 - Sockets}}
+\lfoot{}
+\cfoot{\thepage\ (\pageref{LastPage})}
+\rfoot{}
+
+% Create title page
+\title{Homework 1 - Sockets}
+\subtitle{Network Programming, ID1212}
+\author{Erik Pettersson - erpette@kth.se}
+\date{2018-11-11}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+
+Task
+\begin{itemize}
+	\item{To write a distributed application that uses TCP or UDP sockets.}
+	\item{To develop an object-oriented application with a simple UI.}
+	\item{To use concurrent threads in nodes of said application which in turn improve scalability and performance}
+\end{itemize}
+
+This is implemented as a hangman game with support for multiple concurrent clients, each with their own game instance assigned to them.\\
+
+Requirements of the solution:
+\begin{itemize}
+	\item{The application shall have a layered architecture, and communicate over blocking TCP sockets.}
+	\item{The client must only have a user interface and may not store any state which would belong in a model layer. Instead all data should be sent by the server for each game round.}
+	\item{The client must also have a "responsive" user interface, e.g. meaning that it should be possible to disconnect even when waiting for the server to send a response.}
+	\item{The server should also be able to handle multiple clients at the same time - so it needs to be multithreaded.}
+	\item{The client UI should be informative, so that the current state of the program is clear to the user. It is however allowed to provide just a command line UI.}
+\end{itemize}
+
+\section{Literature Study}
+
+I watched the lecture videos for the introduction and socket modules. I have also read the chapters about I/O and sockets in the course book\footnote{Java Network Programming, 4th Edition, Developing Networked Applications, by Elliotte Rusty Harold, O'Reilly \& Ass., Inc., 2013}. I have also scoured the web for more information about how to use different components and set things up within the architecture. Most important of the external information I took in is Oracle’s Java Tutorials and Java Documentation pages.
+
+Through these I learned how to use streams to read from and write to a socket or a file, how to write a threaded server application, and how to use a number of the predefined classes provided in Java.
+
+\section{Method}
+
+I have worked alone, using IntelliJ IDEA as my IDE of choice.\\
+To ensure that the requirements are fulfilled I have tried to work through the list of requirements one by one when working on my program. Had I possessed better skills in test-writing I would have chosen a more test-driven development style, but alas, this is not the case. I have instead compiled the program and run it after each change I made to be able to evaluate it continuously against the list of requirements.
+
+\section{Result}
+
+The code can be found at\\
+\url{https://github.com/trubb/id1212/tree/master/1_sockets/src}
+
+\begin{itemize}
+	\item{
+		Layered architecture\\
+		My solution uses three layers on the client side: a Controller layer, a Network layer, and a View layer.\\
+		The controller passes actions between the different layers.\\
+		The Network layer handles the connection to and communication with the server.\\
+		The View layer handles user input and output of messages from the server.\\
+		\\
+		For the Server three layers are also used: a Controller layer, a Network layer, and a Model layer are used.\\
+		The Network layer handles the connection to individual clients, parses the input provided by the client application, and subsequently hands it off to the other components for use.\\
+		The Controller handles interaction between the Network and Model layer, acting as an intermediary between the Network and Model layers by asking the Model for what the Network layer needs at the moment.\\
+		The Model is made up by the game class, which performs all game-related operations and passes information about the current round, and the total score of the client, back to the controller when requested to do so.
+	}
+	\item{
+		Communication by sockets\\
+		The classes \texttt{ClientConnector} and \texttt{ServerConnector} handle communication over a TCP socket. On the server side the Server class runs a \texttt{ServerSocket}, which is subsequently passed to a \texttt{ClientConnector} instance when a client connects. The Client in turn runs a \texttt{ServerConnector} for connecting to and communicating with the server. Messages are passed and read by using \texttt{PrintWriters} and \texttt{BufferedReaders }that tap into the socket input and output streams respectively.
+	}
+	\item{
+		No saving of state in the Client\\
+		No data provided by the Server is saved by the Client, it is instead output into the Client’s Command Line Interface. No user input is saved client side either, although the terminal will show the user’s input to them that is merely a side effect of the terminal and not information that is saved in the program.
+	}
+	\item{
+		Server may only send state, not formatted strings\\
+		The server does only provide information to be presented, and does not wrap it with any nice clarifications to the client about what it just received.\\
+		This has changed somewhat in this fixed iteration of the program, more about it in a minute.
+	}
+	\item{
+		Client has responsive UI\\
+		The Client is not bound to waiting for information from the Server and THEN executing its disconnect command. Instead the client can disconnect its own end of the socket at any time, as the class \texttt{ClientInput} parses input on the client side and is running separately.
+	}
+	\item{
+		Server can handle multiple Clients at once\\
+		The server spawns a new \texttt{ClientConnector} for each Client that connects, thereby each connected Client has a separate \texttt{ClientConnector}, Controller and Game instance assigned to them.
+	}
+	\item{
+		Informative Client UI\\
+		On startup the Client connects to the Server, and then lets the user know that it is connected as well as displaying the two commands that are permitted: \texttt{!PLAY} and \texttt{!QUIT}.\\
+		While playing the number of remaining attempts n, n underscores that change to correctly guessed letters, the user’s score, and the letters that have been guessed are sent to the user for displaying.\\
+	If the user correctly guesses a word letter by letter, or by a whole word guess the score is incremented and a new round is started.\\
+	If the user loses the round by incorrectly guessing too many times the selected word is sent to the user, and a new round is started automatically by the Server.
+	
+	\includegraphics[scale=0.25]{../reports/images/ClientUI.png}
+	
+	\includegraphics[scale=0.25]{../reports/images/ClientWins.png} \includegraphics[scale=0.25]{../reports/images/clientloss.png}\\
+	\emph{Above we can see the Client's UI mid-round, after correctly guessing the word, and after running out of attempts in a later round.}
+	}
+\end{itemize}
+
+\subsection{What has been corrected}
+
+The three things I had to correct according to the feedback I received were:
+\begin{enumerate}
+	\item{
+		The Server's \texttt{Controller} should not send messages via the method \texttt{messages}, it should be done in the Network layer. The controller can instead simply return a \texttt{String} or an \texttt{object} containing the message, which is then sent by the \texttt{ClientConnector}.\\
+		To fix this I created a new top-level layer \texttt{common} containing the class \texttt{Message} in order to be able to send the game state to the Client in a better way.
+		\lstinputlisting[language=Java, firstline=1, lastline=9]{../1_sockets/src/common/Message.java}
+		On the Server side the \texttt{ClientConnector} calls the \texttt{Controller} to create and serialize a message, which the \texttt{ClientConnector} then sends to the client. This message can optionally contain a helper message at the end of a round to make it clear if the user guessed correctly or not.
+		\lstinputlisting[language=Java, firstline=48, lastline=67]{../1_sockets/src/server/net/ClientConnector.java}
+		\lstinputlisting[language=Java, firstline=47, lastline=67]{../1_sockets/src/server/controller/Controller.java}
+		On the Client side the message is then deserialized and printed by the class \texttt{ClientView}, an instance of which was created by the \texttt{Controller}.
+		\lstinputlisting[language=Java, firstline=8, lastline=21]{../1_sockets/src/client/view/ClientView.java}
+		\lstinputlisting[language=Java, firstline=36, lastline=43]{../1_sockets/src/common/Message.java}
+	}
+	\item{
+		The class \texttt{ClientInput} should be moved to the \texttt{View} layer.\\
+		As shown below this has been done, as it was simply a case of moving the file I have no further comments.
+		\lstinputlisting[language=Java, firstline=1, lastline=11]{../1_sockets/src/client/view/ClientInput.java}
+	}
+	\item{
+		The \texttt{View} is created in the Network layer, in the class \texttt{Listen}, which calls \texttt{System.out.println}.\\
+		To fix this I created the class \texttt{ClientView} which does all the printing of messages sent from the server, an instance of it is created by the Client's \texttt{Controller} and passed to the \texttt{ServerConnector} which uses it to display received messages to the user.
+		\lstinputlisting[language=Java, firstline=79, lastline=81]{../1_sockets/src/client/net/ServerConnector.java}		
+		\lstinputlisting[language=Java, firstline=8, lastline=21]{../1_sockets/src/client/view/ClientView.java}
+	}
+\end{enumerate}
+
+
+\section{Discussion}
+
+\begin{itemize}
+	\item{
+		Layered architecture\\
+		My implementation has a layered architecture where each discrete layer has a specific role.
+	}
+	\item{
+		Communication by sockets\\
+		The implementation communicates over blocking TCP sockets.
+	}
+	\item{
+		No saving of state in the Client\\
+		The Client does not save any state, it merely outputs the information provided to it by the Server into its CLI.
+	}
+	\item{
+		Server may only send state, not formatted strings\\
+		The Server sends a serialized message containing game information, which is deserialized and printed by the Client.
+	}
+	\item{
+		Client has responsive UI\\
+		E.g. disconnecting is handled completely client side, meaning that there is no need to wait for the Server to complete its message transaction before disconnecting.
+	}
+	\item{
+		Server can handle multiple Clients at once\\
+		The server spawns a new \texttt{ClientConnector} for each new Client that connects.\\
+		The clients are thereby handled separately and they do not interfere with each other.
+	}
+	\item{
+		Informative Client UI\\
+		The Client's command line interface presents all information that is needed. Post-fix it is now done in a more stylish manner.
+	}
+\end{itemize}
+
+
+\section{Comments About the Course}
+
+After completing four assignments I still feel a little confused about what goes where and in what directions or between which components method calls may be made and what rules govern these calls. I am, however, far more comfortable with working with layered architectures.
+
+The increased time for assignments 4 and 5 was a really good idea, but I still feel that it is a bit much to do 5 mandatory  assignments \textbf{plus} a project. I am not sure what the rules for changing the makeup of a course are but maybe doing just the 5 assignments might be beneficial, both for the student's cumulative workload and your own. Especially since the project does not necessarily introduce any new paradigms, and probably lead many students to take the path of least resistance and just do the task from the 1st assignment they didn't do in the first place.
+
+\end{document}
