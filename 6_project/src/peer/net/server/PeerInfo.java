@@ -1,17 +1,26 @@
 package peer.net.server;
 
-public class PeerInfo {
+import java.io.Serializable;
 
-    private String ID;
-    private String HOST;
-    private int PORT;
+/**
+ * Contains information about a given client - a peer
+ */
+public class PeerInfo implements Serializable {
 
-    private String currentMove;
-    private int roundScore;
-    private int totalScore;
+    private String ID;              // the id of the client, literally "hostname:port"
+    private String HOST;            // the IP address of the client
+    private int PORT;               // the port number of the client
+    private String currentMove;     // the move that has been selected for the current round
+    private int roundScore;         // the score the client got this round
+    private int totalScore;         // the client's total score
 
-    public PeerInfo(String ID, String HOST, int PORT) {
-        this.ID = ID;
+    /**
+     * Constructor
+     * @param HOST
+     * @param PORT
+     */
+    public PeerInfo ( String HOST, int PORT ) {
+        this.ID = HOST + ":" + PORT;
         this.HOST = HOST;
         this.PORT = PORT;
         this.currentMove = null;
@@ -19,14 +28,7 @@ public class PeerInfo {
         this.totalScore = 0;
     }
 
-    /**
-     * TODO - CHECK WHAT GOES ON HERE
-     * @param HOST
-     * @param PORT
-     */
-    public PeerInfo(String HOST, int PORT) {
-        this( HOST + ":" + PORT, HOST, PORT );
-    }
+    // Getters and Setters live below here
 
     public String getID() {
         return ID;
@@ -52,18 +54,6 @@ public class PeerInfo {
         return totalScore;
     }
 
-    public void setID(String ID) {
-        this.ID = ID;
-    }
-
-    public void setHOST(String HOST) {
-        this.HOST = HOST;
-    }
-
-    public void setPORT(int PORT) {
-        this.PORT = PORT;
-    }
-
     public void setCurrentMove(String currentMove) {
         this.currentMove = currentMove;
     }
@@ -80,10 +70,10 @@ public class PeerInfo {
         this.roundScore = 0;
     }
 
-    public void resetTotalScore() {
-        this.totalScore = 0;
-    }
-
+    /**
+     * Override toString() so that we return the ID
+     * @return  the ID as a string
+     */
     @Override
     public String toString() {
         return ID;

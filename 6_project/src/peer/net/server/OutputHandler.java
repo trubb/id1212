@@ -2,5 +2,9 @@ package peer.net.server;
 
 public interface OutputHandler {
 
-    public void handleMsg(String msg);
+    /**
+     * Called when a message has been received
+     * @param msg   the message received
+     */
+    public void handleMsg ( String msg );
 }
